@@ -2,10 +2,13 @@ module ap-scraper
 
 go 1.25.0
 
-require modernc.org/sqlite v1.39.1
+require (
+	github.com/PuerkitoBio/goquery v1.12.0
+	golang.org/x/sync v0.20.0
+	modernc.org/sqlite v1.39.1
+)
 
 require (
-	github.com/PuerkitoBio/goquery v1.12.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
