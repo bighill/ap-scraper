@@ -16,17 +16,17 @@ const (
 	apArticlePath = "/article/"
 )
 
-// ParseWorldNewsHTML extracts story metadata from the AP world-news page HTML.
+// ParseWorldNewsHTML extracts article metadata from the AP world-news page HTML.
 //
-// Returned stories are deduplicated by canonical URL within this parse result.
+// Returned articles are deduplicated by canonical URL within this parse result.
 // ScrapedAt is intentionally left as 0 for the caller to set at runtime.
-func ParseWorldNewsHTML(html []byte) ([]model.Story, error) {
+func ParseWorldNewsHTML(html []byte) ([]model.Article, error) {
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(html))
 	if err != nil {
 		return nil, fmt.Errorf("parse html: %w", err)
 	}
 
-	items := make([]model.Story, 0)
+	items := make([]model.Article, 0)
 	seen := make(map[string]struct{})
 
 	doc.Find("div.PagePromo").Each(func(_ int, s *goquery.Selection) {
@@ -61,7 +61,7 @@ func ParseWorldNewsHTML(html []byte) ([]model.Story, error) {
 
 		imageURL := extractImageURL(s)
 
-		items = append(items, model.Story{
+		items = append(items, model.Article{
 			URL:       canonURL,
 			Title:     title,
 			ImageURL:  imageURL,

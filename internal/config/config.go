@@ -1,10 +1,21 @@
 package config
 
-// DBPath is the SQLite database location.
-const DBPath = "./data/apnews.db"
+import "time"
 
-// CachePath is the cache HTML location.
-const CachePath = "./data/world-news.cache.html"
+// Static configuration (no env vars for now; add later if needed).
 
-// WorldNewsURL is the AP world-news source URL.
-const WorldNewsURL = "https://apnews.com/world-news"
+const (
+	DBPath       = "./data/apnews.db"
+	CachePath    = "./data/world-news.cache.html"
+	WorldNewsURL = "https://apnews.com/world-news"
+	HTTPAddr     = ":8080"
+)
+
+// ScrapeInterval is how often the scheduler runs a live scrape (fetch + ingest).
+const ScrapeInterval = 77 * time.Minute
+
+// FetchTimeout bounds HTTP GET of the world-news page.
+const FetchTimeout = 30 * time.Second
+
+// ArticleRetentionPeriod: articles with posted_at older than this (relative to now, UTC) are deleted after each scrape.
+const ArticleRetentionPeriod = 5 * 24 * time.Hour
