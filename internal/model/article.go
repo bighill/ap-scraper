@@ -1,7 +1,7 @@
 package model
 
-// Story holds normalized AP world-news metadata.
-type Story struct {
+// Article holds normalized AP world-news metadata.
+type Article struct {
 	URL       string `json:"url"`
 	Title     string `json:"title"`
 	ImageURL  string `json:"image_url,omitempty"`

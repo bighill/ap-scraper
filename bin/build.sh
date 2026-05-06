@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Example: build the apnews CLI binary.
-go build -o ./apnews ./cmd/apnews
+# Build the server binary (HTTP API + scheduler).
+go build -o ./apnews-server ./cmd/server
