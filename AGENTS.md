@@ -4,6 +4,10 @@
 
 Do not write scratch files, downloads, or outputs under `/tmp` or anywhere outside this repository. Keep fetches, caches, build artifacts, and temporary data inside this project directory (for example under `data/`).
 
+## Long-running processes
+
+Do not start or leave running long-lived processes (for example `go run ./cmd/server`, HTTP dev servers, watchers, or background jobs that keep listening). The user runs servers and daemons. Prefer bounded checks: `go test ./...`, `go build`, or other commands that exit on their own.
+
 ## Project shape
 
 - **Language / module:** Go 1.25+, module `ap-scraper`.
