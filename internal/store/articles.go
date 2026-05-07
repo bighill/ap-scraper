@@ -12,7 +12,7 @@ import (
 func (s *Store) QueryAll(ctx context.Context) ([]model.Article, error) {
 	const q = `
 SELECT url, title, image_url, blurb, posted_at, updated_at, scraped_at
-FROM world_news_articles
+FROM articles
 ORDER BY posted_at DESC;
 `
 
@@ -32,7 +32,7 @@ func (s *Store) UpsertArticles(ctx context.Context, articles []model.Article) er
 	}
 
 	const q = `
-INSERT INTO world_news_articles (url, title, image_url, blurb, posted_at, updated_at, scraped_at)
+INSERT INTO articles (url, title, image_url, blurb, posted_at, updated_at, scraped_at)
 VALUES (?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(url) DO UPDATE SET
 	title = excluded.title,
@@ -80,7 +80,7 @@ ON CONFLICT(url) DO UPDATE SET
 // DeleteOlderThanPostedAt deletes articles with posted_at before threshold.
 func (s *Store) DeleteOlderThanPostedAt(ctx context.Context, threshold int64) (int64, error) {
 	const q = `
-DELETE FROM world_news_articles
+DELETE FROM articles
 WHERE posted_at < ?;
 `
 
