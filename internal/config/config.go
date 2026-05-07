@@ -19,4 +19,4 @@ const ScrapeInterval = 77 * time.Minute
 const FetchTimeout = 30 * time.Second
 
 // ArticleRetentionPeriod: articles with posted_at older than this (relative to now, UTC) are deleted after each scrape.
-const ArticleRetentionPeriod = 5 * 24 * time.Hour
+const ArticleRetentionPeriod = 2 * 24 * time.Hour
