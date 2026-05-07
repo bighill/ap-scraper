@@ -10,9 +10,9 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// schema defines the SQLite table for world news articles.
+// schema defines the SQLite tables used by the service.
 const schema = `
-CREATE TABLE IF NOT EXISTS world_news_articles (
+CREATE TABLE IF NOT EXISTS articles (
 	url TEXT PRIMARY KEY,
 	title TEXT NOT NULL,
 	image_url TEXT,
@@ -20,6 +20,11 @@ CREATE TABLE IF NOT EXISTS world_news_articles (
 	posted_at INTEGER NOT NULL,
 	updated_at INTEGER NOT NULL,
 	scraped_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS kv (
+	key TEXT PRIMARY KEY,
+	value TEXT NOT NULL
 );
 `
 
@@ -63,36 +68,12 @@ func Open(ctx context.Context, path string) (*Store, error) {
 		return nil, fmt.Errorf("ping sqlite db: %w", err)
 	}
 
-	if err := migrateLegacyTableName(ctx, conn); err != nil {
-		conn.Close()
-		return nil, err
-	}
-
 	if _, err := conn.ExecContext(ctx, schema); err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("create schema: %w", err)
 	}
 
 	return &Store{conn: conn}, nil
-}
-
-// migrateLegacyTableName renames world_news_stories to world_news_articles when upgrading.
-func migrateLegacyTableName(ctx context.Context, conn *sql.DB) error {
-	var oldExists, newExists int
-	if err := conn.QueryRowContext(ctx,
-		`SELECT count(*) FROM sqlite_master WHERE type='table' AND name='world_news_stories'`).Scan(&oldExists); err != nil {
-		return fmt.Errorf("check legacy table: %w", err)
-	}
-	if err := conn.QueryRowContext(ctx,
-		`SELECT count(*) FROM sqlite_master WHERE type='table' AND name='world_news_articles'`).Scan(&newExists); err != nil {
-		return fmt.Errorf("check articles table: %w", err)
-	}
-	if oldExists == 1 && newExists == 0 {
-		if _, err := conn.ExecContext(ctx, `ALTER TABLE world_news_stories RENAME TO world_news_articles`); err != nil {
-			return fmt.Errorf("rename legacy table to world_news_articles: %w", err)
-		}
-	}
-	return nil
 }
 
 // Close closes the underlying database connection.

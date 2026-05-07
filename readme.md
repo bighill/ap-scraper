@@ -9,7 +9,7 @@ Go service that scrapes AP world news articles from [apnews.com/world-news](http
 - Captures per article: `url`, `title`, `image_url`, `blurb`, `posted_at`, `updated_at`, `scraped_at` (ms epoch)
 - Deduplicates by canonical URL within each parse; upserts by `url` into SQLite
 - Retention after each scrape: delete rows where `posted_at` is older than **5 days** (UTC)
-- **Scheduler:** an immediate live scrape when the process starts, then every **77 minutes**
+- **Scheduler:** checks `kv.last_scrape_at` on startup and each tick; runs only when the last scrape is older than **77 minutes**
 - **HTTP:** `GET /articles` returns **all** stored articles as JSON (newest `posted_at` first). No pagination or limit query parameter.
 
 Configuration is **static** in [`internal/config/config.go`](internal/config/config.go) (paths, listen address, intervals). Environment variables can be added later without changing this layout.
@@ -44,7 +44,7 @@ Keep runtime data **inside this repo** (e.g. `data/`), not under `/tmp` or other
 
 - Database: `data/apnews.db` (SQLite WAL + `busy_timeout` via modernc DSN — see `internal/store/db.go`)
 - HTML cache: `data/world-news.cache.html`
-- Table: `world_news_articles` (legacy `world_news_stories` is renamed once on open if present)
+- Tables: `articles`, `kv`
 
 ## Development
 
