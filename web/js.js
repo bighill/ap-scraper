@@ -4,11 +4,13 @@
   var statusEl = document.getElementById("status");
   var listEl = document.getElementById("list");
 
+  // setStatus sets the message and color in the status element.
   function setStatus(text, isError) {
     statusEl.textContent = text;
     statusEl.classList.toggle("is-error", !!isError);
   }
 
+  // formatDate converts milliseconds since epoch to a human-readable date and time.
   function formatDate(ms) {
     if (ms == null || ms === 0) {
       return "";
@@ -23,6 +25,7 @@
     }
   }
 
+  // render 
   function render(articles) {
     listEl.innerHTML = "";
     if (!articles.length) {
@@ -74,6 +77,7 @@
     });
   }
 
+  // load
   function load() {
     setStatus("Loading…");
     listEl.hidden = true;
