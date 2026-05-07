@@ -4,25 +4,44 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"ap-scraper/internal/api/handlers"
+	"ap-scraper/internal/config"
 	"ap-scraper/internal/store"
+
+	"github.com/gin-gonic/gin"
 )
 
-// Server is the HTTP API.
+// Server is the HTTP API and static web UI.
 type Server struct {
 	srv *http.Server
 }
 
 // New configures routes and returns a Server for the given listen address.
 func New(st *store.Store, addr string) *Server {
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /articles", handlers.AllArticles(st))
+	gin.SetMode(gin.ReleaseMode)
+
+	r := gin.New()
+	r.Use(gin.Recovery())
+
+	web := filepath.Clean(config.WebUIDir)
+	r.GET("/", func(c *gin.Context) {
+		c.File(filepath.Join(web, "index.html"))
+	})
+	r.GET("/css.css", func(c *gin.Context) {
+		c.File(filepath.Join(web, "css.css"))
+	})
+	r.GET("/js.js", func(c *gin.Context) {
+		c.File(filepath.Join(web, "js.js"))
+	})
+	r.GET("/articles", gin.WrapF(handlers.AllArticles(st)))
+
 	return &Server{
 		srv: &http.Server{
 			Addr:              addr,
-			Handler:           mux,
+			Handler:           r,
 			ReadHeaderTimeout: 10 * time.Second,
 		},
 	}

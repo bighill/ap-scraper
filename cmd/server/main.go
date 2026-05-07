@@ -55,7 +55,7 @@ func run() error {
 	g.Go(func() error { return sched.Run(ctx) })
 	g.Go(func() error { return srv.Run(ctx) })
 
-	log.Printf("listening on %s (GET /articles); scrape every %v", config.HTTPAddr, config.ScrapeInterval)
+	log.Printf("listening on %s (GET /, /css.css, /js.js, /articles); scrape every %v", config.HTTPAddr, config.ScrapeInterval)
 	return g.Wait()
 }
 
