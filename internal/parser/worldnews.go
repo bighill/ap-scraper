@@ -75,6 +75,7 @@ func ParseWorldNewsHTML(html []byte) ([]model.Article, error) {
 	return items, nil
 }
 
+// canonicalicalAPArticleURL returns the URL of an AP article on a canonical domain
 func canonicalAPArticleURL(href string) (string, bool) {
 	href = strings.TrimSpace(href)
 	if href == "" {
@@ -181,4 +182,3 @@ func parseInt64(s string) (int64, error) {
 	}
 	return n * sign, nil
 }
-

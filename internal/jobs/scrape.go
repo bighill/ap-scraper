@@ -76,6 +76,7 @@ func RunScrape(ctx context.Context, st *store.Store, cfg ScrapeConfig) error {
 	return nil
 }
 
+// fetchAndndWriteCache fetches the HTML content of a URL and writes it to a file.
 func fetchAndWriteCache(ctx context.Context, pageURL, cachePath string, timeout time.Duration) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, pageURL, nil)
 	if err != nil {
