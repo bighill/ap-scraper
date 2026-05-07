@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 
 	"ap-scraper/internal/api"
@@ -26,13 +25,6 @@ func main() {
 func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-
-	if err := ensureParentDir(config.DBPath); err != nil {
-		return err
-	}
-	if err := ensureParentDir(config.CachePath); err != nil {
-		return err
-	}
 
 	st, err := store.Open(ctx, config.DBPath)
 	if err != nil {
@@ -57,15 +49,4 @@ func run() error {
 
 	log.Printf("listening on %s (GET /, /css.css, /js.js, /articles); scrape every %v", config.HTTPAddr, config.ScrapeInterval)
 	return g.Wait()
-}
-
-func ensureParentDir(path string) error {
-	parent := filepath.Dir(path)
-	if parent == "." || parent == "" {
-		return nil
-	}
-	if err := os.MkdirAll(parent, 0o755); err != nil {
-		return err
-	}
-	return nil
 }
