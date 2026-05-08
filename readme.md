@@ -53,9 +53,18 @@ Keep runtime data **inside this repo** (e.g. `data/`), not under `/tmp` or other
 
 ## Helper scripts
 
-- `bin/server.sh` — `go run ./cmd/server`
-- `bin/build.sh` — build `./apnews-server` from `cmd/server`
+- `bin/dev.sh` — run `air` hot-reload for `cmd/server`
+- `bin/reload-docker-prod.sh` — rebuild Docker image, replace running prod container, mount `web/` and `data/`
 - `bin/test.sh` — `go test ./...`
+
+## Docker (prod-style local run)
+
+`./bin/reload-docker-prod.sh` builds the app image, stops/removes any existing `ap-scraper-prod` container, and starts a fresh one with:
+
+- Port mapping: `9191:9191`
+- Volume mounts:
+  - `./web -> /app/web`
+  - `./data -> /app/data`
 
 ## Constraints
 
