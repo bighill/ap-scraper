@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 IMAGE_NAME="ap-scraper:prod"
-CONTAINER_NAME="ap-scraper-prod"
+CONTAINER_NAME="ap-scraper"
 
 mkdir -p "${ROOT_DIR}/data"
 
