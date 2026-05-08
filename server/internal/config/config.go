@@ -9,7 +9,7 @@ const (
 	CachePath    = "./data/world-news.cache.html"
 	WorldNewsURL = "https://apnews.com/world-news"
 	HTTPAddr     = ":9191"
-	WebUIDir     = "./web"
+	WebUIDir     = "../web"
 )
 
 // ScrapeInterval is how often the scheduler runs a live scrape (fetch + ingest).
