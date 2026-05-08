@@ -1,7 +1,7 @@
 .git
 .github
 .cursor
-data
+server/data
 apnews-server
 bin
 agent-transcripts

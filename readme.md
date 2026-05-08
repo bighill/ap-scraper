@@ -12,19 +12,21 @@ Go service that scrapes AP world news articles from [apnews.com/world-news](http
 - **Scheduler:** checks `kv.last_scrape_at` on startup and each tick; runs only when the last scrape is older than **77 minutes**
 - **HTTP:** `GET /articles` returns **all** stored articles as JSON (newest `posted_at` first). No pagination or limit query parameter.
 
-Configuration is **static** in [`internal/config/config.go`](internal/config/config.go) (paths, listen address, intervals). Environment variables can be added later without changing this layout.
+Configuration is **static** in [`server/internal/config/config.go`](server/internal/config/config.go) (paths, listen address, intervals). Environment variables can be added later without changing this layout.
 
 ## Layout
 
 | Path | Role |
 |------|------|
-| `cmd/server` | Process entry: signal handling, open store, run scheduler + HTTP API (`golang.org/x/sync/errgroup`) |
-| `internal/store` | SQLite only: DSN/pragmas, schema on open, queries |
-| `internal/jobs` | `RunScrape`: fetch/cache HTML, parse, upsert, retention (no SQL here) |
-| `internal/scheduler` | Periodic scrape (77-minute default) |
-| `internal/api` | `http.Server`, graceful shutdown; `GET /articles` |
-| `internal/parser` | HTML → `[]model.Article` |
-| `internal/model` | `Article` struct |
+| `server/main.go` | Process entry: signal handling, open store, run scheduler + HTTP API (`golang.org/x/sync/errgroup`) |
+| `server/internal/store` | SQLite only: DSN/pragmas, schema on open, queries |
+| `server/internal/jobs` | `RunScrape`: fetch/cache HTML, parse, upsert, retention (no SQL here) |
+| `server/internal/scheduler` | Periodic scrape (77-minute default) |
+| `server/internal/api` | `http.Server`, graceful shutdown; `GET /articles` |
+| `server/internal/parser` | HTML → `[]model.Article` |
+| `server/internal/model` | `Article` struct |
+| `server/data` | Runtime SQLite DB and HTML cache |
+| `web` | Static frontend served by the server |
 | `plan.md` | Architecture and policies (schema, naming, API contract) |
 
 There is **no** CLI binary and **no** versioned SQL migration directory; DDL lives next to `store.Open`.
@@ -32,30 +34,30 @@ There is **no** CLI binary and **no** versioned SQL migration directory; DDL liv
 ## Run
 
 ```bash
-go run ./cmd/server
+go -C server run .
 ```
 
-- Default listen address: `:8080` (see `internal/config/config.go`)
-- Example: `curl -s http://localhost:8080/articles | head`
+- Default listen address: `:9191` (see `server/internal/config/config.go`)
+- Example: `curl -s http://localhost:9191/articles | head`
 
 ## Paths and storage
 
-Keep runtime data **inside this repo** (e.g. `data/`), not under `/tmp` or other paths outside the project.
+Keep runtime data **inside this repo** (e.g. `server/data/`), not under `/tmp` or other paths outside the project.
 
-- Database: `data/apnews.db` (SQLite WAL + `busy_timeout` via modernc DSN — see `internal/store/db.go`)
-- HTML cache: `data/world-news.cache.html`
+- Database: `server/data/apnews.db` (SQLite WAL + `busy_timeout` via modernc DSN — see `server/internal/store/db.go`)
+- HTML cache: `server/data/world-news.cache.html`
 - Tables: `articles`, `kv`
 
 ## Development
 
-- Tests: `go test ./...` or `./bin/test.sh`
+- Tests: `go -C server test ./...` or `./bin/test.sh`
 - **Unit tests** avoid touching SQLite and the filesystem: parser tests use inline HTML; handler tests use stubs; store tests cover DSN string construction only. Integration-style tests against a real DB or cache files are not required for routine changes.
 
 ## Helper scripts
 
-- `bin/dev.sh` — run `air` hot-reload for `cmd/server`
-- `bin/reload-docker-prod.sh` — rebuild Docker image, replace running prod container, mount `web/` and `data/`
-- `bin/test.sh` — `go test ./...`
+- `bin/dev.sh` — run `air` hot-reload for `server/main.go`
+- `bin/reload-docker-prod.sh` — rebuild Docker image, replace running prod container, mount `web/` and `server/data/`
+- `bin/test.sh` — `go -C server test ./...`
 
 ## Docker (prod-style local run)
 
@@ -64,7 +66,7 @@ Keep runtime data **inside this repo** (e.g. `data/`), not under `/tmp` or other
 - Port mapping: `9191:9191`
 - Volume mounts:
   - `./web -> /app/web`
-  - `./data -> /app/data`
+  - `./server/data -> /app/server/data`
 
 ## Constraints
 
