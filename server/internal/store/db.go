@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -19,7 +20,8 @@ CREATE TABLE IF NOT EXISTS articles (
 	blurb TEXT,
 	posted_at INTEGER NOT NULL,
 	updated_at INTEGER NOT NULL,
-	scraped_at INTEGER NOT NULL
+	scraped_at INTEGER NOT NULL,
+	is_hidden INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS kv (
@@ -71,6 +73,15 @@ func Open(ctx context.Context, path string) (*Store, error) {
 	if _, err := conn.ExecContext(ctx, schema); err != nil {
 		conn.Close()
 		return nil, fmt.Errorf("create schema: %w", err)
+	}
+
+	// Migrate older databases that lack is_hidden.
+	if _, err := conn.ExecContext(ctx, `ALTER TABLE articles ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0;`); err != nil {
+		// SQLite returns an error if the column already exists; ignore it.
+		if !strings.Contains(err.Error(), "duplicate column name") {
+			conn.Close()
+			return nil, fmt.Errorf("migrate schema: %w", err)
+		}
 	}
 
 	return &Store{conn: conn}, nil

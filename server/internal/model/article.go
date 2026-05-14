@@ -9,4 +9,5 @@ type Article struct {
 	PostedAt  int64  `json:"posted_at"`
 	UpdatedAt int64  `json:"updated_at"`
 	ScrapedAt int64  `json:"scraped_at"`
+	IsHidden  bool   `json:"is_hidden"`
 }
