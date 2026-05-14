@@ -70,6 +70,47 @@ body {
   border-top: 1px solid var(--border);
 }
 
+.controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  max-width: 40rem;
+}
+
+.count-badge {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.article-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.hide-btn,
+.unhide-btn {
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+#toggle-view {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
 .article-card a.title {
   color: var(--accent);
   text-decoration: none;
