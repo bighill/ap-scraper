@@ -27,19 +27,12 @@ func New(st *store.Store, addr string) *Server {
 	r.Use(gin.Recovery())
 
 	web := filepath.Clean(config.WebUIDir)
-	r.GET("/", func(c *gin.Context) {
-		c.File(filepath.Join(web, "index.html"))
-	})
-	r.GET("/css.css", func(c *gin.Context) {
-		c.File(filepath.Join(web, "css.css"))
-	})
-	r.GET("/js.js", func(c *gin.Context) {
-		c.File(filepath.Join(web, "js.js"))
-	})
+
 	r.GET("/articles", gin.WrapF(handlers.ListArticles(st)))
 	r.GET("/articles/count", gin.WrapF(handlers.ArticleCounts(st)))
 	r.POST("/articles/hide", gin.WrapF(handlers.HideArticle(st)))
 	r.POST("/articles/unhide", gin.WrapF(handlers.UnhideArticle(st)))
+	r.StaticFS("/", http.Dir(web))
 
 	return &Server{
 		srv: &http.Server{
