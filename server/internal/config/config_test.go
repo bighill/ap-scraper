@@ -12,8 +12,8 @@ func TestConfig_pathsNonEmpty(t *testing.T) {
 	if DBPath == "" {
 		t.Fatal("DBPath empty")
 	}
-	if CachePath == "" {
-		t.Fatal("CachePath empty")
+	if WorldNewsURL == "" {
+		t.Fatal("WorldNewsURL empty")
 	}
 }
 

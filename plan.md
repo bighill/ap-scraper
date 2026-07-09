@@ -7,7 +7,7 @@ This document records the design decisions and conventions for `ap-scraper`. Kee
 - `server/main.go` is the only binary entry point.
 - `server/internal/store` is the only package that contains SQL.
 - `server/internal/parser` has no database or filesystem access.
-- `server/internal/jobs` orchestrates fetch/cache, parse, store upsert, and retention.
+- `server/internal/jobs` orchestrates fetch, parse, store upsert, and retention.
 - `server/internal/scheduler` runs periodic scrapes using `kv.last_scrape_at`.
 - `server/internal/api` and `server/internal/api/handlers` serve HTTP.
 - `server/internal/config` holds static constants only; environment variables are added later if needed.
@@ -46,4 +46,4 @@ This document records the design decisions and conventions for `ap-scraper`. Kee
 - Parser tests use inline HTML.
 - Handler tests use interface stubs.
 - Store tests cover DSN construction.
-- Integration tests requiring a real DB or cache file are added only when explicitly requested.
+- Integration tests requiring a real DB file are added only when explicitly requested.

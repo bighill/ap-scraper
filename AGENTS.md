@@ -17,7 +17,7 @@ Do not start or leave running long-lived processes (for example `go -C server ru
 | Area | Package / path | Notes |
 |------|----------------|--------|
 | SQLite | `server/internal/store` | Only package with SQL. `Open` applies schema; no `migrations/` history — see `plan.md`. |
-| Scraping | `server/internal/jobs` | Orchestrates fetch/cache, `parser`, store upsert + retention. |
+| Scraping | `server/internal/jobs` | Orchestrates fetch, `parser`, store upsert + retention. |
 | Scheduler | `server/internal/scheduler` | Default interval 77 minutes; config in `server/internal/config`. |
 | HTTP | `server/internal/api`, `server/internal/api/handlers` | `GET /articles` returns all articles as JSON. |
 | HTML parsing | `server/internal/parser` | No database access. |
@@ -27,7 +27,7 @@ Do not start or leave running long-lived processes (for example `go -C server ru
 ## Testing expectations
 
 - Prefer **unit tests that do not open SQLite or read the filesystem** (inline HTML in parser tests; `articleLister` stub for handlers; DSN string checks in `server/internal/store`).
-- Do not add tests that require `server/data/world-news.cache.html` or a real DB file unless explicitly requested.
+- Do not add tests that require a real DB file unless explicitly requested.
 - Run `go -C server test ./...` before finishing substantive changes.
 
 ## Docs
