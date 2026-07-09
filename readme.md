@@ -27,7 +27,6 @@ Configuration is **static** in [`server/internal/config/config.go`](server/inter
 | `server/internal/model` | `Article` struct |
 | `server/data` | Runtime SQLite DB |
 | `web` | Static frontend served by the server |
-| `plan.md` | Architecture and policies (schema, naming, API contract) |
 
 There is **no** CLI binary and **no** versioned SQL migration directory; DDL lives next to `store.Open`.
 
