@@ -20,7 +20,7 @@ NEVER run the actual application. If you expect the app to be running but it is 
 |------|----------------|--------|
 | SQLite | `server/internal/store` | Only package with SQL. `Open` applies schema; no `migrations/` history. |
 | Scraping | `server/internal/jobs` | Orchestrates fetch, `parser`, store upsert + retention. |
-| Scheduler | `server/internal/scheduler` | Default interval 77 minutes; config in `server/internal/config`. |
+| Scheduler | `server/internal/scheduler` | Default interval 2 hours; config in `server/internal/config`. |
 | HTTP | `server/internal/api`, `server/internal/api/handlers` | `GET /articles` returns all articles as JSON. |
 | HTML parsing | `server/internal/parser` | No database access. |
 | Types | `server/internal/model` | `Article` and JSON tags. |

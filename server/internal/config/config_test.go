@@ -40,8 +40,8 @@ func TestConfig_durationsPositive(t *testing.T) {
 	if ArticleRetentionPeriod <= 0 {
 		t.Fatalf("ArticleRetentionPeriod %v", ArticleRetentionPeriod)
 	}
-	// Documented default: 77 minutes.
-	if ScrapeInterval != 77*time.Minute {
-		t.Fatalf("ScrapeInterval = %v, want 77m", ScrapeInterval)
+	// Documented default: 2 hours.
+	if ScrapeInterval != 2*time.Hour {
+		t.Fatalf("ScrapeInterval = %v, want 2h", ScrapeInterval)
 	}
 }
