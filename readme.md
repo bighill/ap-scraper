@@ -8,7 +8,7 @@ Go service that scrapes AP world news articles from [apnews.com/world-news](http
 - Parses `div.PagePromo` promo cards and keeps article URLs matching `https://apnews.com/article/...`
 - Captures per article: `url`, `title`, `image_url`, `blurb`, `posted_at`, `updated_at`, `scraped_at` (ms epoch)
 - Deduplicates by canonical URL within each parse; upserts by `url` into SQLite
-- Retention after each scrape: delete rows where `posted_at` is older than **5 days** (UTC)
+- Retention after each scrape: delete rows where `posted_at` is older than **2 days** (UTC)
 - **Scheduler:** checks `kv.last_scrape_at` on startup and each tick; runs only when the last scrape is older than **77 minutes**
 - **HTTP:** `GET /articles` returns **all** stored articles as JSON (newest `posted_at` first). No pagination or limit query parameter.
 
