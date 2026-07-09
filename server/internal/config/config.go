@@ -10,7 +10,7 @@ const (
 )
 
 // ScrapeInterval is how often the scheduler runs a live scrape (fetch + ingest).
-const ScrapeInterval = 77 * time.Minute
+const ScrapeInterval = 2 * time.Hour
 
 // FetchTimeout bounds HTTP GET of the world-news page.
 const FetchTimeout = 30 * time.Second
