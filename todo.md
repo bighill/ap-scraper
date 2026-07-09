@@ -2,4 +2,4 @@
 
 load single article ; view single article
 
-toggle images
+scrape every 2 hours
