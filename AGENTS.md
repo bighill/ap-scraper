@@ -10,6 +10,10 @@ Do not start or leave running long-lived processes (for example `go -C server ru
 
 NEVER run the actual application. If you expect the app to be running but it is not, inform the user instead of starting it yourself. Do not clean up by starting the app first—only stop processes you personally started, and always verify with `ps aux | grep ...` (or similar) that nothing is left behind.
 
+## Git
+
+When on the `main` branch, do not run `git commit` unless the user explicitly requests it. Other git commands (status, diff, log, branch, add, etc.) are fine.
+
 ## Project shape
 
 - **Language / module:** Go 1.25+, module `ap-scraper`.
