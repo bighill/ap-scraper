@@ -6,8 +6,11 @@
   var controlsEl = document.getElementById("controls");
   var countBadgeEl = document.getElementById("count-badge");
   var toggleViewEl = document.getElementById("toggle-view");
+  var showImagesEl = document.getElementById("show-images");
 
   var viewMode = "visible"; // 'visible' | 'hidden'
+  var showImages = true;
+  var currentArticles = [];
 
   function setStatus(text, isError) {
     statusEl.textContent = text;
@@ -60,9 +63,31 @@
     }
   }
 
+  function applyShowImages(show) {
+    showImages = show;
+    if (showImagesEl) {
+      showImagesEl.checked = show;
+    }
+  }
+
+  function loadShowImages() {
+    return fetch("/settings/images", { headers: { Accept: "application/json" } })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        if (data && typeof data.show_images === "boolean") {
+          applyShowImages(data.show_images);
+        }
+      });
+  }
+
   function render(articles) {
+    currentArticles = articles;
     listEl.innerHTML = "";
     if (!articles || !articles.length) {
+      currentArticles = [];
       setStatus(viewMode === "hidden" ? "No hidden articles." : "No articles yet.");
       listEl.hidden = true;
       return;
@@ -114,7 +139,7 @@
         li.appendChild(blurb);
       }
 
-      if (a.image_url) {
+      if (showImages && a.image_url) {
         var img = document.createElement("img");
         img.className = "article-thumb";
         img.src = a.image_url;
@@ -172,5 +197,23 @@
     load();
   });
 
-  load();
+  showImagesEl.addEventListener("change", function () {
+    var newVal = showImagesEl.checked;
+    fetch("/settings/images", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ show_images: newVal }),
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        applyShowImages(newVal);
+        render(currentArticles);
+      })
+      .catch(function (err) {
+        setStatus("Failed to update images setting: " + (err.message || String(err)), true);
+        applyShowImages(!newVal);
+      });
+  });
+
+  loadShowImages().then(load).catch(load);
 })();

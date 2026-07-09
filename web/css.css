@@ -111,7 +111,20 @@ body {
   color: var(--fg);
 }
 
-.article-card a.title {
+.images-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.images-toggle input {
+  cursor: pointer;
+}
+
+
   color: var(--accent);
   text-decoration: none;
   font-size: 1.05rem;
