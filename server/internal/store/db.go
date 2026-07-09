@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"path/filepath"
-	"strings"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -63,7 +63,9 @@ func Open(ctx context.Context, path string) (*Store, error) {
 		return nil, fmt.Errorf("open sqlite db: %w", err)
 	}
 
-	conn.SetMaxOpenConns(1)
+	conn.SetMaxOpenConns(25)
+	conn.SetMaxIdleConns(5)
+	conn.SetConnMaxLifetime(30 * time.Minute)
 
 	if err := conn.PingContext(ctx); err != nil {
 		conn.Close()
@@ -76,15 +78,26 @@ func Open(ctx context.Context, path string) (*Store, error) {
 	}
 
 	// Migrate older databases that lack is_hidden.
-	if _, err := conn.ExecContext(ctx, `ALTER TABLE articles ADD COLUMN is_hidden INTEGER NOT NULL DEFAULT 0;`); err != nil {
-		// SQLite returns an error if the column already exists; ignore it.
-		if !strings.Contains(err.Error(), "duplicate column name") {
-			conn.Close()
-			return nil, fmt.Errorf("migrate schema: %w", err)
-		}
+	if err := addColumnIfMissing(ctx, conn, "articles", "is_hidden"); err != nil {
+		conn.Close()
+		return nil, fmt.Errorf("migrate schema: %w", err)
 	}
 
 	return &Store{conn: conn}, nil
+}
+
+// addColumnIfMissing runs ALTER TABLE ADD COLUMN only when the column does not already exist.
+func addColumnIfMissing(ctx context.Context, conn *sql.DB, table, column string) error {
+	const q = `SELECT 1 FROM pragma_table_info(?) WHERE name = ?;`
+	var n int
+	if err := conn.QueryRowContext(ctx, q, table, column).Scan(&n); err != nil {
+		if err == sql.ErrNoRows {
+			_, err = conn.ExecContext(ctx, fmt.Sprintf(`ALTER TABLE %q ADD COLUMN %q INTEGER NOT NULL DEFAULT 0;`, table, column))
+			return err
+		}
+		return err
+	}
+	return nil
 }
 
 // Close closes the underlying database connection.

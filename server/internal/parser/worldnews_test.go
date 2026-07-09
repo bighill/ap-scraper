@@ -129,35 +129,6 @@ func TestCanonicalAPArticleURL(t *testing.T) {
 	}
 }
 
-func TestParseInt64(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		in      string
-		want    int64
-		wantErr bool
-	}{
-		{"", 0, true},
-		{"42", 42, false},
-		{"0", 0, false},
-		{"-9", -9, false},
-		{"12x", 0, true},
-		{"-", 0, true},
-	}
-	for _, tt := range tests {
-		got, err := parseInt64(tt.in)
-		if tt.wantErr {
-			if err == nil {
-				t.Fatalf("parseInt64(%q) err nil, want error", tt.in)
-			}
-			continue
-		}
-		if err != nil || got != tt.want {
-			t.Fatalf("parseInt64(%q) = (%d, %v), want (%d, nil)", tt.in, got, err, tt.want)
-		}
-	}
-}
-
 func TestParseWorldNewsHTML_skipsIncompleteCard(t *testing.T) {
 	t.Parallel()
 

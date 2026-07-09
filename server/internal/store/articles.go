@@ -107,36 +107,48 @@ WHERE posted_at < ?;
 	return rows, nil
 }
 
-// HideArticle marks an article as hidden.
-func (s *Store) HideArticle(ctx context.Context, url string) error {
+// HideArticle marks an article as hidden and reports whether a row was changed.
+func (s *Store) HideArticle(ctx context.Context, url string) (bool, error) {
 	const q = `UPDATE articles SET is_hidden = 1 WHERE url = ?;`
-	_, err := s.conn.ExecContext(ctx, q, url)
+	res, err := s.conn.ExecContext(ctx, q, url)
 	if err != nil {
-		return fmt.Errorf("hide article %q: %w", url, err)
+		return false, fmt.Errorf("hide article %q: %w", url, err)
 	}
-	return nil
+	n, err := res.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("read hide rows affected: %w", err)
+	}
+	return n > 0, nil
 }
 
-// UnhideArticle marks an article as visible.
-func (s *Store) UnhideArticle(ctx context.Context, url string) error {
+// UnhideArticle marks an article as visible and reports whether a row was changed.
+func (s *Store) UnhideArticle(ctx context.Context, url string) (bool, error) {
 	const q = `UPDATE articles SET is_hidden = 0 WHERE url = ?;`
-	_, err := s.conn.ExecContext(ctx, q, url)
+	res, err := s.conn.ExecContext(ctx, q, url)
 	if err != nil {
-		return fmt.Errorf("unhide article %q: %w", url, err)
+		return false, fmt.Errorf("unhide article %q: %w", url, err)
 	}
-	return nil
+	n, err := res.RowsAffected()
+	if err != nil {
+		return false, fmt.Errorf("read unhide rows affected: %w", err)
+	}
+	return n > 0, nil
 }
 
 // CountArticles returns total, visible, and hidden counts.
 func (s *Store) CountArticles(ctx context.Context) (total, visible, hidden int, err error) {
-	if err := s.conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM articles;`).Scan(&total); err != nil {
-		return 0, 0, 0, fmt.Errorf("count total articles: %w", err)
-	}
-	if err := s.conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM articles WHERE is_hidden = 0;`).Scan(&visible); err != nil {
-		return 0, 0, 0, fmt.Errorf("count visible articles: %w", err)
-	}
-	if err := s.conn.QueryRowContext(ctx, `SELECT COUNT(*) FROM articles WHERE is_hidden = 1;`).Scan(&hidden); err != nil {
-		return 0, 0, 0, fmt.Errorf("count hidden articles: %w", err)
+	const q = `
+SELECT
+	COUNT(*) AS total,
+	SUM(CASE WHEN is_hidden = 0 THEN 1 ELSE 0 END) AS visible,
+	SUM(CASE WHEN is_hidden = 1 THEN 1 ELSE 0 END) AS hidden
+FROM articles;
+`
+	if err := s.conn.QueryRowContext(ctx, q).Scan(&total,
+		&visible,
+		&hidden,
+	); err != nil {
+		return 0, 0, 0, fmt.Errorf("count articles: %w", err)
 	}
 	return total, visible, hidden, nil
 }

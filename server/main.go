@@ -34,8 +34,6 @@ func run() error {
 
 	scrapeCfg := jobs.ScrapeConfig{
 		WorldNewsURL: config.WorldNewsURL,
-		CachePath:    config.CachePath,
-		UseCache:     false,
 		FetchTimeout: config.FetchTimeout,
 		Retention:    config.ArticleRetentionPeriod,
 	}
@@ -47,6 +45,6 @@ func run() error {
 	g.Go(func() error { return sched.Run(ctx) })
 	g.Go(func() error { return srv.Run(ctx) })
 
-	log.Printf("listening on %s (GET /, /css.css, /js.js, /articles); scrape every %v", config.HTTPAddr, config.ScrapeInterval)
+	log.Print("http://localhost" + config.HTTPAddr)
 	return g.Wait()
 }

@@ -16,8 +16,8 @@ type articleLister interface {
 
 // articleHider is the store surface needed for POST /articles/hide and /articles/unhide.
 type articleHider interface {
-	HideArticle(context.Context, string) error
-	UnhideArticle(context.Context, string) error
+	HideArticle(context.Context, string) (bool, error)
+	UnhideArticle(context.Context, string) (bool, error)
 }
 
 // articleCounter is the store surface needed for GET /articles/count.
@@ -58,9 +58,14 @@ func HideArticle(st articleHider) http.HandlerFunc {
 			http.Error(w, "url required", http.StatusBadRequest)
 			return
 		}
-		if err := st.HideArticle(r.Context(), req.URL); err != nil {
+		changed, err := st.HideArticle(r.Context(), req.URL)
+		if err != nil {
 			log.Printf("api: hide article: %v", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		if !changed {
+			http.Error(w, "not found", http.StatusNotFound)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
@@ -81,9 +86,14 @@ func UnhideArticle(st articleHider) http.HandlerFunc {
 			http.Error(w, "url required", http.StatusBadRequest)
 			return
 		}
-		if err := st.UnhideArticle(r.Context(), req.URL); err != nil {
+		changed, err := st.UnhideArticle(r.Context(), req.URL)
+		if err != nil {
 			log.Printf("api: unhide article: %v", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		if !changed {
+			http.Error(w, "not found", http.StatusNotFound)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)

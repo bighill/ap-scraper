@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"ap-scraper/internal/model"
@@ -119,8 +120,8 @@ func parseEpochMillisAttr(s *goquery.Selection, attr string) (int64, bool) {
 		return 0, false
 	}
 
-	// AP uses ms epoch; ParseInt handles it directly.
-	n, err := parseInt64(v)
+	// AP uses ms epoch; strconv.ParseInt handles it directly.
+	n, err := strconv.ParseInt(v, 10, 64)
 	if err != nil {
 		return 0, false
 	}
@@ -156,29 +157,3 @@ func extractImageURL(s *goquery.Selection) string {
 	return ""
 }
 
-func parseInt64(s string) (int64, error) {
-	// Avoid pulling in strconv in many call sites while keeping this file cohesive.
-	// (The compiler will inline this anyway.)
-	var n int64
-	var sign int64 = 1
-
-	if s == "" {
-		return 0, fmt.Errorf("empty")
-	}
-	if s[0] == '-' {
-		sign = -1
-		s = s[1:]
-		if s == "" {
-			return 0, fmt.Errorf("invalid")
-		}
-	}
-
-	for i := 0; i < len(s); i++ {
-		c := s[i]
-		if c < '0' || c > '9' {
-			return 0, fmt.Errorf("invalid digit")
-		}
-		n = n*10 + int64(c-'0')
-	}
-	return n * sign, nil
-}
