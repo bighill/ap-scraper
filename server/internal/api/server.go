@@ -32,7 +32,13 @@ func New(st *store.Store, addr string) *Server {
 	r.GET("/articles/count", gin.WrapF(handlers.ArticleCounts(st)))
 	r.POST("/articles/hide", gin.WrapF(handlers.HideArticle(st)))
 	r.POST("/articles/unhide", gin.WrapF(handlers.UnhideArticle(st)))
-	r.StaticFS("/", http.Dir(web))
+
+	// Serve the web UI from the root without registering a catch-all
+	// wildcard, which would conflict with the /articles API routes.
+	fileServer := http.FileServer(http.Dir(web))
+	r.NoRoute(func(c *gin.Context) {
+		fileServer.ServeHTTP(c.Writer, c.Request)
+	})
 
 	return &Server{
 		srv: &http.Server{

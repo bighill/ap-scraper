@@ -2,11 +2,13 @@
 
 ## Repository boundaries
 
-Do not write scratch files, downloads, or outputs under `/tmp` or anywhere outside this repository. Keep fetches, caches, build artifacts, and temporary data inside this project directory (for example under `server/data/`).
+Do not write scratch files, downloads, or outputs under `/tmp` or anywhere outside this repository. Keep fetches, build artifacts, and temporary data inside this project directory (for example under `server/data/`).
 
 ## Long-running processes
 
 Do not start or leave running long-lived processes (for example `go -C server run .`, HTTP dev servers, watchers, or background jobs that keep listening). The user runs servers and daemons. Prefer bounded checks: `go -C server test ./...`, `go -C server build ./...`, or other commands that exit on their own.
+
+NEVER run the actual application. If you expect the app to be running but it is not, inform the user instead of starting it yourself. Do not clean up by starting the app first—only stop processes you personally started, and always verify with `ps aux | grep ...` (or similar) that nothing is left behind.
 
 ## Project shape
 
@@ -16,7 +18,7 @@ Do not start or leave running long-lived processes (for example `go -C server ru
 
 | Area | Package / path | Notes |
 |------|----------------|--------|
-| SQLite | `server/internal/store` | Only package with SQL. `Open` applies schema; no `migrations/` history — see `plan.md`. |
+| SQLite | `server/internal/store` | Only package with SQL. `Open` applies schema; no `migrations/` history. |
 | Scraping | `server/internal/jobs` | Orchestrates fetch, `parser`, store upsert + retention. |
 | Scheduler | `server/internal/scheduler` | Default interval 77 minutes; config in `server/internal/config`. |
 | HTTP | `server/internal/api`, `server/internal/api/handlers` | `GET /articles` returns all articles as JSON. |
@@ -33,6 +35,5 @@ Do not start or leave running long-lived processes (for example `go -C server ru
 ## Docs
 
 - **`readme.md`** — user-facing behavior, layout table, run instructions.
-- **`plan.md`** — architecture decisions (API contract, schema policy, SQLite DSN details, naming).
 
-Keep agent work consistent with both; avoid contradicting the “no migration ledger” and “static config until env vars are added” policies.
+Keep agent work consistent with `readme.md`; avoid contradicting the “no migration ledger” and “static config until env vars are added” policies.

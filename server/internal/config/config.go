@@ -2,8 +2,6 @@ package config
 
 import "time"
 
-// Static configuration (no env vars for now; add later if needed).
-
 const (
 	DBPath       = "./data/apnews.db"
 	WorldNewsURL = "https://apnews.com/world-news"
