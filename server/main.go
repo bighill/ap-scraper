@@ -34,8 +34,6 @@ func run() error {
 
 	scrapeCfg := jobs.ScrapeConfig{
 		WorldNewsURL: config.WorldNewsURL,
-		CachePath:    config.CachePath,
-		UseCache:     false,
 		FetchTimeout: config.FetchTimeout,
 		Retention:    config.ArticleRetentionPeriod,
 	}

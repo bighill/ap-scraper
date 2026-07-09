@@ -6,7 +6,6 @@ import "time"
 
 const (
 	DBPath       = "./data/apnews.db"
-	CachePath    = "./data/world-news.cache.html"
 	WorldNewsURL = "https://apnews.com/world-news"
 	HTTPAddr     = ":9191"
 	WebUIDir     = "../web"

@@ -20,12 +20,12 @@ Configuration is **static** in [`server/internal/config/config.go`](server/inter
 |------|------|
 | `server/main.go` | Process entry: signal handling, open store, run scheduler + HTTP API (`golang.org/x/sync/errgroup`) |
 | `server/internal/store` | SQLite only: DSN/pragmas, schema on open, queries |
-| `server/internal/jobs` | `RunScrape`: fetch/cache HTML, parse, upsert, retention (no SQL here) |
+| `server/internal/jobs` | `RunScrape`: fetch HTML, parse, upsert, retention (no SQL here) |
 | `server/internal/scheduler` | Periodic scrape (77-minute default) |
 | `server/internal/api` | `http.Server`, graceful shutdown; `GET /articles` |
 | `server/internal/parser` | HTML → `[]model.Article` |
 | `server/internal/model` | `Article` struct |
-| `server/data` | Runtime SQLite DB and HTML cache |
+| `server/data` | Runtime SQLite DB |
 | `web` | Static frontend served by the server |
 | `plan.md` | Architecture and policies (schema, naming, API contract) |
 
@@ -45,13 +45,12 @@ go -C server run .
 Keep runtime data **inside this repo** (e.g. `server/data/`), not under `/tmp` or other paths outside the project.
 
 - Database: `server/data/apnews.db` (SQLite WAL + `busy_timeout` via modernc DSN — see `server/internal/store/db.go`)
-- HTML cache: `server/data/world-news.cache.html`
 - Tables: `articles`, `kv`
 
 ## Development
 
 - Tests: `go -C server test ./...` or `./bin/test.sh`
-- **Unit tests** avoid touching SQLite and the filesystem: parser tests use inline HTML; handler tests use stubs; store tests cover DSN string construction only. Integration-style tests against a real DB or cache files are not required for routine changes.
+- **Unit tests** avoid touching SQLite and the filesystem: parser tests use inline HTML; handler tests use stubs; store tests cover DSN string construction only. Integration-style tests against a real DB are not required for routine changes.
 
 ## Helper scripts
 
