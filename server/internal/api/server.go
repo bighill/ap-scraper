@@ -33,6 +33,9 @@ func New(st *store.Store, addr string) *Server {
 	r.POST("/articles/hide", gin.WrapF(handlers.HideArticle(st)))
 	r.POST("/articles/unhide", gin.WrapF(handlers.UnhideArticle(st)))
 
+	r.GET("/settings/images", gin.WrapF(handlers.GetShowImages(st)))
+	r.POST("/settings/images", gin.WrapF(handlers.SetShowImages(st)))
+
 	// Serve the web UI from the root without registering a catch-all
 	// wildcard, which would conflict with the /articles API routes.
 	fileServer := http.FileServer(http.Dir(web))
