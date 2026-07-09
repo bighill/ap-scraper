@@ -24,17 +24,18 @@ func (s stubLister) QueryAll(ctx context.Context, hidden bool) ([]model.Article,
 type stubHider struct {
 	hideURL    string
 	unhideURL  string
+	changed    bool
 	err        error
 }
 
-func (s *stubHider) HideArticle(ctx context.Context, url string) error {
+func (s *stubHider) HideArticle(ctx context.Context, url string) (bool, error) {
 	s.hideURL = url
-	return s.err
+	return s.changed, s.err
 }
 
-func (s *stubHider) UnhideArticle(ctx context.Context, url string) error {
+func (s *stubHider) UnhideArticle(ctx context.Context, url string) (bool, error) {
 	s.unhideURL = url
-	return s.err
+	return s.changed, s.err
 }
 
 type stubCounter struct {
@@ -146,7 +147,7 @@ func TestListArticles_emptySlice(t *testing.T) {
 func TestHideArticle_success(t *testing.T) {
 	t.Parallel()
 
-	h := &stubHider{}
+	h := &stubHider{changed: true}
 	srv := httptest.NewServer(HideArticle(h))
 	t.Cleanup(srv.Close)
 
@@ -218,10 +219,28 @@ func TestHideArticle_storeError(t *testing.T) {
 	}
 }
 
+func TestHideArticle_notFound(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(HideArticle(&stubHider{changed: false}))
+	t.Cleanup(srv.Close)
+
+	body := `{"url":"https://apnews.com/article/missing"}`
+	resp, err := http.Post(srv.URL, "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("status %d", resp.StatusCode)
+	}
+}
+
 func TestUnhideArticle_success(t *testing.T) {
 	t.Parallel()
 
-	h := &stubHider{}
+	h := &stubHider{changed: true}
 	srv := httptest.NewServer(UnhideArticle(h))
 	t.Cleanup(srv.Close)
 
@@ -272,6 +291,24 @@ func TestUnhideArticle_storeError(t *testing.T) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusInternalServerError {
+		t.Fatalf("status %d", resp.StatusCode)
+	}
+}
+
+func TestUnhideArticle_notFound(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(UnhideArticle(&stubHider{changed: false}))
+	t.Cleanup(srv.Close)
+
+	body := `{"url":"https://apnews.com/article/missing"}`
+	resp, err := http.Post(srv.URL, "application/json", strings.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNotFound {
 		t.Fatalf("status %d", resp.StatusCode)
 	}
 }

@@ -2,11 +2,8 @@ package config
 
 import "time"
 
-// Static configuration (no env vars for now; add later if needed).
-
 const (
 	DBPath       = "./data/apnews.db"
-	CachePath    = "./data/world-news.cache.html"
 	WorldNewsURL = "https://apnews.com/world-news"
 	HTTPAddr     = ":9191"
 	WebUIDir     = "../web"
