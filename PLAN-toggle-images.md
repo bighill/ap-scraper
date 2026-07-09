@@ -95,7 +95,7 @@ Run `go -C server test ./...` before finishing.
 
 - [x] Store: add `ShowImages` / `SetShowImages` methods to `server/internal/store/kv.go`
 - [x] Handlers: add `GET /settings/images` and `POST /settings/images` handlers with tests
-- [ ] Server: register settings routes in `server/internal/api/server.go`
+- [x] Server: register settings routes in `server/internal/api/server.go`
 - [ ] Web UI: add "Images" checkbox and conditional thumbnail rendering
 
 ## Decisions
