@@ -156,4 +156,3 @@ func extractImageURL(s *goquery.Selection) string {
 
 	return ""
 }
-

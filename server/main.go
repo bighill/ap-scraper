@@ -37,8 +37,12 @@ func run() error {
 		FetchTimeout: config.FetchTimeout,
 		Retention:    config.ArticleRetentionPeriod,
 	}
+	contentCfg := jobs.ContentScrapeConfig{
+		FetchTimeout:        config.ContentFetchTimeout,
+		DelayBetweenFetches: config.ContentFetchDelay,
+	}
 
-	sched := scheduler.New(st, config.ScrapeInterval, scrapeCfg)
+	sched := scheduler.New(st, config.ScrapeInterval, scrapeCfg, contentCfg)
 	srv := api.New(st, config.HTTPAddr)
 
 	g, ctx := errgroup.WithContext(ctx)

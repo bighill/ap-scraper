@@ -10,13 +10,16 @@ func TestArticle_JSONRoundTrip(t *testing.T) {
 	t.Parallel()
 
 	in := Article{
-		URL:       "https://apnews.com/article/x",
-		Title:     "Hello",
-		ImageURL:  "https://example.com/i.jpg",
-		Blurb:     "Short",
-		PostedAt:  100,
-		UpdatedAt: 200,
-		ScrapedAt: 300,
+		ID:               42,
+		URL:              "https://apnews.com/article/x",
+		Title:            "Hello",
+		ImageURL:         "https://example.com/i.jpg",
+		Blurb:            "Short",
+		Content:          "Full body",
+		PostedAt:         100,
+		UpdatedAt:        200,
+		ScrapedAt:        300,
+		ContentScrapedAt: 400,
 	}
 	raw, err := json.Marshal(in)
 	if err != nil {
@@ -36,6 +39,7 @@ func TestArticle_JSONOmitempty(t *testing.T) {
 	t.Parallel()
 
 	in := Article{
+		ID:        1,
 		URL:       "https://apnews.com/article/y",
 		Title:     "T",
 		PostedAt:  1,
