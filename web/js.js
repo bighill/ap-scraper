@@ -21,6 +21,7 @@
   var showImages = true;
   var currentArticles = [];
   var currentArticle = null;
+  var currentArticleLi = null;
 
   function formatDate(ms) {
     if (ms == null || ms === 0) {
@@ -224,6 +225,7 @@
         img.alt = "";
         img.loading = "lazy";
         img.addEventListener("click", function () {
+          currentArticleLi = li;
           showDetail(a);
         });
         li.appendChild(img);
@@ -232,6 +234,7 @@
       li.appendChild(actionBtn);
 
       titleBtn.addEventListener("click", function () {
+        currentArticleLi = li;
         showDetail(a);
       });
 
@@ -313,9 +316,19 @@
         currentArticles = currentArticles.filter(function (a) {
           return a.url !== url;
         });
-        render(currentArticles);
         showList();
         updateCounts();
+        var li = currentArticleLi;
+        currentArticleLi = null;
+        if (li && li.parentNode) {
+          var rect = li.getBoundingClientRect();
+          window.scrollTo(0, window.scrollY + rect.top);
+          requestAnimationFrame(function () {
+            removeArticle(li);
+          });
+        } else {
+          render(currentArticles);
+        }
       })
       .catch(function (err) {
         console.error("Failed to update article:", err.message || String(err));
