@@ -200,6 +200,9 @@
         img.src = a.image_url;
         img.alt = "";
         img.loading = "lazy";
+        img.addEventListener("click", function () {
+          showDetail(a);
+        });
         li.appendChild(img);
       }
 

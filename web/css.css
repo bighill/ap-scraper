@@ -212,4 +212,5 @@ button.title:focus-visible {
   height: auto;
   border-radius: 4px;
   display: block;
+  cursor: pointer;
 }
