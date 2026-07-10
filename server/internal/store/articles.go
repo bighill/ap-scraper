@@ -13,14 +13,14 @@ func (s *Store) QueryAll(ctx context.Context, hidden bool) ([]model.Article, err
 	var q string
 	if hidden {
 		q = `
-SELECT url, title, image_url, blurb, posted_at, updated_at, scraped_at, is_hidden
+SELECT id, url, title, image_url, blurb, content, posted_at, updated_at, scraped_at, content_scraped_at, is_hidden
 FROM articles
 WHERE is_hidden = 1
 ORDER BY posted_at DESC;
 `
 	} else {
 		q = `
-SELECT url, title, image_url, blurb, posted_at, updated_at, scraped_at, is_hidden
+SELECT id, url, title, image_url, blurb, content, posted_at, updated_at, scraped_at, content_scraped_at, is_hidden
 FROM articles
 WHERE is_hidden = 0
 ORDER BY posted_at DESC;
@@ -36,15 +36,56 @@ ORDER BY posted_at DESC;
 	return scanArticles(rows)
 }
 
+// QueryArticlesMissingContent returns articles whose content has never been fetched.
+func (s *Store) QueryArticlesMissingContent(ctx context.Context) ([]model.Article, error) {
+	const q = `
+SELECT id, url, title, image_url, blurb, content, posted_at, updated_at, scraped_at, content_scraped_at, is_hidden
+FROM articles
+WHERE content IS NULL AND content_scraped_at IS NULL
+ORDER BY posted_at DESC;
+`
+	rows, err := s.conn.QueryContext(ctx, q)
+	if err != nil {
+		return nil, fmt.Errorf("query missing content: %w", err)
+	}
+	defer rows.Close()
+
+	return scanArticles(rows)
+}
+
+// QueryOne returns a single article by its database id.
+func (s *Store) QueryOne(ctx context.Context, id int64) (model.Article, error) {
+	const q = `
+SELECT id, url, title, image_url, blurb, content, posted_at, updated_at, scraped_at, content_scraped_at, is_hidden
+FROM articles
+WHERE id = ?;
+`
+	rows, err := s.conn.QueryContext(ctx, q, id)
+	if err != nil {
+		return model.Article{}, fmt.Errorf("query one: %w", err)
+	}
+	defer rows.Close()
+
+	items, err := scanArticles(rows)
+	if err != nil {
+		return model.Article{}, err
+	}
+	if len(items) == 0 {
+		return model.Article{}, sql.ErrNoRows
+	}
+	return items[0], nil
+}
+
 // UpsertArticles inserts or updates articles by URL.
+// Existing content and content_scraped_at values are never overwritten.
 func (s *Store) UpsertArticles(ctx context.Context, articles []model.Article) error {
 	if len(articles) == 0 {
 		return nil
 	}
 
 	const q = `
-INSERT INTO articles (url, title, image_url, blurb, posted_at, updated_at, scraped_at, is_hidden)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+INSERT INTO articles (url, title, image_url, blurb, content, posted_at, updated_at, scraped_at, content_scraped_at, is_hidden)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ON CONFLICT(url) DO UPDATE SET
 	title = excluded.title,
 	image_url = excluded.image_url,
@@ -58,10 +99,10 @@ ON CONFLICT(url) DO UPDATE SET
 	if err != nil {
 		return fmt.Errorf("begin upsert tx: %w", err)
 	}
+	defer tx.Rollback()
 
 	stmt, err := tx.PrepareContext(ctx, q)
 	if err != nil {
-		tx.Rollback()
 		return fmt.Errorf("prepare upsert statement: %w", err)
 	}
 	defer stmt.Close()
@@ -73,18 +114,33 @@ ON CONFLICT(url) DO UPDATE SET
 			article.Title,
 			article.ImageURL,
 			article.Blurb,
+			sql.NullString{String: article.Content, Valid: article.Content != ""},
 			article.PostedAt,
 			article.UpdatedAt,
 			article.ScrapedAt,
+			sql.NullInt64{Valid: false},
 			0,
 		); err != nil {
-			tx.Rollback()
 			return fmt.Errorf("upsert article %q: %w", article.URL, err)
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("commit upsert tx: %w", err)
+	}
+	return nil
+}
+
+// UpdateArticleContent stores the parsed body for one article and marks it as content-scraped.
+func (s *Store) UpdateArticleContent(ctx context.Context, id int64, content string, scrapedAt int64) error {
+	const q = `
+UPDATE articles
+SET content = ?, content_scraped_at = ?
+WHERE id = ?;
+`
+	_, err := s.conn.ExecContext(ctx, q, content, scrapedAt, id)
+	if err != nil {
+		return fmt.Errorf("update article content %d: %w", id, err)
 	}
 	return nil
 }
@@ -158,19 +214,30 @@ func scanArticles(rows *sql.Rows) ([]model.Article, error) {
 	for rows.Next() {
 		var item model.Article
 		var hidden int64
+		var imageURL, blurb, content sql.NullString
+		var contentScrapedAt sql.NullInt64
 		if err := rows.Scan(
+			&item.ID,
 			&item.URL,
 			&item.Title,
-			&item.ImageURL,
-			&item.Blurb,
+			&imageURL,
+			&blurb,
+			&content,
 			&item.PostedAt,
 			&item.UpdatedAt,
 			&item.ScrapedAt,
+			&contentScrapedAt,
 			&hidden,
 		); err != nil {
 			return nil, fmt.Errorf("scan article: %w", err)
 		}
+		item.ImageURL = imageURL.String
+		item.Blurb = blurb.String
+		item.Content = content.String
 		item.IsHidden = hidden != 0
+		if contentScrapedAt.Valid {
+			item.ContentScrapedAt = contentScrapedAt.Int64
+		}
 		articles = append(articles, item)
 	}
 

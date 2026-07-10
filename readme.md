@@ -1,16 +1,22 @@
 # AP Scraper
 
-Go service that scrapes AP world news articles from [apnews.com/world-news](https://apnews.com/world-news), normalizes metadata, stores them in local SQLite, and serves them over HTTP. A built-in scheduler runs a live scrape on a fixed interval.
+Go service that scrapes AP world news articles from [apnews.com/world-news](https://apnews.com/world-news), normalizes metadata, stores them in local SQLite, and serves them over HTTP. A built-in scheduler runs a live scrape on a fixed interval and follows each successful listing scrape with a content-scrape pass.
 
 ## Behavior
 
 - Source page: `https://apnews.com/world-news`
 - Parses `div.PagePromo` promo cards and keeps article URLs matching `https://apnews.com/article/...`
-- Captures per article: `url`, `title`, `image_url`, `blurb`, `posted_at`, `updated_at`, `scraped_at` (ms epoch)
+- Captures per article: `id`, `url`, `title`, `image_url`, `blurb`, `posted_at`, `updated_at`, `scraped_at`, `content`, `content_scraped_at` (ms epoch)
 - Deduplicates by canonical URL within each parse; upserts by `url` into SQLite
 - Retention after each scrape: delete rows where `posted_at` is older than **2 days** (UTC)
 - **Scheduler:** checks `kv.last_scrape_at` on startup and each tick; runs only when the last scrape is older than **2 hours**
-- **HTTP:** `GET /articles` returns **all** stored articles as JSON (newest `posted_at` first). No pagination or limit query parameter.
+  - After a successful listing scrape, it fetches article pages one-by-one (20s timeout, 2s delay) and stores the body text
+  - Each article URL is content-scraped at most once; once `content_scraped_at` is set it is never revisited
+- **HTTP:**
+  - `GET /articles` returns all stored articles as JSON summaries (newest `posted_at` first)
+  - `GET /articles?full=1` includes the `content` field for each article
+  - `GET /articles/:id` returns a single article by database id, including `content`
+  - `GET /articles/count`, `POST /articles/hide`, `POST /articles/unhide`
 
 Configuration is **static** in [`server/internal/config/config.go`](server/internal/config/config.go) (paths, listen address, intervals). Environment variables can be added later without changing this layout.
 
@@ -20,13 +26,13 @@ Configuration is **static** in [`server/internal/config/config.go`](server/inter
 |------|------|
 | `server/main.go` | Process entry: signal handling, open store, run scheduler + HTTP API (`golang.org/x/sync/errgroup`) |
 | `server/internal/store` | SQLite only: DSN/pragmas, schema on open, queries |
-| `server/internal/jobs` | `RunScrape`: fetch HTML, parse, upsert, retention (no SQL here) |
-| `server/internal/scheduler` | Periodic scrape (2-hour default) |
-| `server/internal/api` | `http.Server`, graceful shutdown; `GET /articles` |
-| `server/internal/parser` | HTML → `[]model.Article` |
+| `server/internal/jobs` | `RunScrape`: fetch HTML, parse, upsert, retention; `RunContentScrape`: per-article body fetch |
+| `server/internal/scheduler` | Periodic scrape (2-hour default), content pass after each listing scrape |
+| `server/internal/api` | `http.Server`, graceful shutdown; `/articles` endpoints |
+| `server/internal/parser` | HTML → `[]model.Article` and article page body text |
 | `server/internal/model` | `Article` struct |
 | `server/data` | Runtime SQLite DB |
-| `web` | Static frontend served by the server |
+| `web` | Static frontend served by the server (list view + inline article detail) |
 
 There is **no** CLI binary and **no** versioned SQL migration directory; DDL lives next to `store.Open`.
 
@@ -38,6 +44,7 @@ go -C server run .
 
 - Default listen address: `:9191` (see `server/internal/config/config.go`)
 - Example: `curl -s http://localhost:9191/articles | head`
+- Single article: `curl -s http://localhost:9191/articles/1`
 
 ## Paths and storage
 
@@ -45,6 +52,7 @@ Keep runtime data **inside this repo** (e.g. `server/data/`), not under `/tmp` o
 
 - Database: `server/data/apnews.db` (SQLite WAL + `busy_timeout` via modernc DSN — see `server/internal/store/db.go`)
 - Tables: `articles`, `kv`
+- The `articles` table uses an autoincrement `id` column. If you have an older database created before this change, delete `server/data/apnews.db` and let the server recreate the schema.
 
 ## Development
 

@@ -37,6 +37,12 @@ func TestConfig_durationsPositive(t *testing.T) {
 	if FetchTimeout <= 0 {
 		t.Fatalf("FetchTimeout %v", FetchTimeout)
 	}
+	if ContentFetchTimeout <= 0 {
+		t.Fatalf("ContentFetchTimeout %v", ContentFetchTimeout)
+	}
+	if ContentFetchDelay <= 0 {
+		t.Fatalf("ContentFetchDelay %v", ContentFetchDelay)
+	}
 	if ArticleRetentionPeriod <= 0 {
 		t.Fatalf("ArticleRetentionPeriod %v", ArticleRetentionPeriod)
 	}
