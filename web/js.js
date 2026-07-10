@@ -21,7 +21,7 @@
   var showImages = true;
   var currentArticles = [];
   var currentArticle = null;
-  var currentArticleLi = null;
+  var listScrollY = 0;
 
   function formatDate(ms) {
     if (ms == null || ms === 0) {
@@ -186,6 +186,7 @@
     articles.forEach(function (a) {
       var li = document.createElement("li");
       li.className = "article-card";
+      li.dataset.url = a.url;
 
       var titleBtn = document.createElement("button");
       titleBtn.className = "title";
@@ -225,7 +226,7 @@
         img.alt = "";
         img.loading = "lazy";
         img.addEventListener("click", function () {
-          currentArticleLi = li;
+          listScrollY = window.scrollY;
           showDetail(a);
         });
         li.appendChild(img);
@@ -234,7 +235,7 @@
       li.appendChild(actionBtn);
 
       titleBtn.addEventListener("click", function () {
-        currentArticleLi = li;
+        listScrollY = window.scrollY;
         showDetail(a);
       });
 
@@ -317,12 +318,16 @@
           return a.url !== url;
         });
         showList();
+        window.scrollTo(0, listScrollY);
         updateCounts();
-        var li = currentArticleLi;
-        currentArticleLi = null;
-        if (li && li.parentNode) {
-          var rect = li.getBoundingClientRect();
-          window.scrollTo(0, window.scrollY + rect.top);
+        var li = null;
+        for (var i = 0; i < listEl.children.length; i++) {
+          if (listEl.children[i].dataset.url === url) {
+            li = listEl.children[i];
+            break;
+          }
+        }
+        if (li) {
           requestAnimationFrame(function () {
             removeArticle(li);
           });
@@ -337,6 +342,7 @@
 
   backBtn.addEventListener("click", function () {
     showList();
+    window.scrollTo(0, listScrollY);
   });
 
   detailHideTopBtn.addEventListener("click", hideCurrentArticle);
