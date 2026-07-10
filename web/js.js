@@ -56,10 +56,24 @@
   }
 
   function removeArticle(li) {
-    li.parentNode.removeChild(li);
-    if (!listEl.children.length) {
-      listEl.hidden = true;
+    li.style.height = li.offsetHeight + "px";
+    void li.offsetHeight;
+    li.classList.add("is-removing");
+    li.style.height = "0";
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      if (li.parentNode) li.parentNode.removeChild(li);
+      if (!listEl.children.length) {
+        listEl.hidden = true;
+      }
     }
+    li.addEventListener("transitionend", function (e) {
+      if (e.propertyName !== "height") return;
+      finish();
+    });
+    setTimeout(finish, 300);
   }
 
   function applyShowImages(show) {
