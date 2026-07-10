@@ -38,16 +38,6 @@ main {
   margin-inline: auto;
 }
 
-.status {
-  margin: 0 0 1rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.status.is-error {
-  color: var(--err);
-}
-
 .noscript {
   color: var(--err);
 }
