@@ -12,8 +12,8 @@
   var detailExternalEl = document.getElementById("detail-external");
   var backBtn = document.getElementById("back-btn");
   var controlsEl = document.getElementById("controls");
-  var countBadgeEl = document.getElementById("count-badge");
-  var toggleViewEl = document.getElementById("toggle-view");
+  var showVisibleBtn = document.getElementById("show-visible");
+  var showHiddenBtn = document.getElementById("show-hidden");
   var showImagesEl = document.getElementById("show-images");
 
   var viewMode = "visible"; // 'visible' | 'hidden'
@@ -48,11 +48,13 @@
       .then(function (data) {
         var hidden = data.hidden || 0;
         var visible = data.visible || 0;
-        countBadgeEl.textContent = hidden + " hidden / " + visible + " visible";
+        showVisibleBtn.textContent = visible + " visible";
+        showHiddenBtn.textContent = hidden + " hidden";
         controlsEl.hidden = false;
       })
       .catch(function () {
-        countBadgeEl.textContent = "";
+        showVisibleBtn.textContent = "";
+        showHiddenBtn.textContent = "";
       });
   }
 
@@ -267,11 +269,26 @@
       });
   }
 
-  toggleViewEl.addEventListener("click", function () {
-    viewMode = viewMode === "visible" ? "hidden" : "visible";
-    toggleViewEl.textContent = viewMode === "visible" ? "Show hidden" : "Show main";
+  function setActiveView() {
+    showVisibleBtn.classList.toggle("is-active", viewMode === "visible");
+    showHiddenBtn.classList.toggle("is-active", viewMode === "hidden");
+  }
+
+  showVisibleBtn.addEventListener("click", function () {
+    if (viewMode === "visible") return;
+    viewMode = "visible";
+    setActiveView();
     load();
   });
+
+  showHiddenBtn.addEventListener("click", function () {
+    if (viewMode === "hidden") return;
+    viewMode = "hidden";
+    setActiveView();
+    load();
+  });
+
+  setActiveView();
 
   backBtn.addEventListener("click", function () {
     showList();

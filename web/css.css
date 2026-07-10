@@ -82,8 +82,32 @@ main {
 }
 
 .count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   color: var(--muted);
   font-size: 0.9rem;
+}
+
+.count-sep {
+  color: var(--muted);
+}
+
+.count-btn {
+  all: unset;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.count-btn:hover,
+.count-btn:focus-visible {
+  color: var(--fg);
+  text-decoration: underline;
+}
+
+.count-btn.is-active {
+  color: var(--fg);
 }
 
 .article-header {
@@ -98,16 +122,6 @@ main {
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0.35rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--bg);
-  color: var(--fg);
-}
-
-#toggle-view {
-  padding: 0.35rem 0.7rem;
-  font-size: 0.9rem;
-  cursor: pointer;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--bg);

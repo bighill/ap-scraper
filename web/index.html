@@ -13,12 +13,15 @@
 
     <!-- controls -->
     <div id="controls" class="controls" hidden>
-      <span id="count-badge" class="count-badge"></span>
+      <span class="count-badge">
+        <button id="show-visible" class="count-btn" type="button"></button>
+        <span class="count-sep" aria-hidden="true">|</span>
+        <button id="show-hidden" class="count-btn" type="button"></button>
+      </span>
       <label class="images-toggle">
         <input id="show-images" type="checkbox" checked>
         <span>Images</span>
       </label>
-      <button id="toggle-view" type="button">Show hidden</button>
     </div>
     <p id="status" class="status" role="status" aria-live="polite">Loading…</p>
 
