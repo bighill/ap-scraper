@@ -10,6 +10,8 @@
 <body>
 
   <main>
+
+    <!-- controls -->
     <div id="controls" class="controls" hidden>
       <span id="count-badge" class="count-badge"></span>
       <label class="images-toggle">
@@ -20,26 +22,30 @@
     </div>
     <p id="status" class="status" role="status" aria-live="polite">Loading…</p>
 
+    <!-- list pane -->
     <div id="list-view">
       <ul id="list" class="article-list" hidden></ul>
     </div>
 
+    <!-- detail pane -->
     <div id="detail-view" hidden>
       <nav class="detail-nav">
         <button id="back-btn" type="button">← Back</button>
-        <a id="detail-external" href="#" target="_blank" rel="noopener noreferrer">Read on AP News →</a>
       </nav>
       <article id="detail-article">
         <h1 id="detail-title"></h1>
         <p id="detail-meta" class="article-meta"></p>
         <img id="detail-image" class="article-thumb" alt="">
         <div id="detail-content" class="detail-content"></div>
+        <a id="detail-external" class="detail-external" href="#" target="_blank" rel="noopener noreferrer">Read on AP News</a>
       </article>
     </div>
 
+    <!-- shove off -->
     <noscript>
       <p class="noscript">JavaScript is required to load articles from this server.</p>
     </noscript>
+
   </main>
 
   <script src="/js.js" defer></script>
