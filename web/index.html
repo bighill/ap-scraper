@@ -10,37 +10,48 @@
 <body>
 
   <main>
-    <div id="controls" class="controls" hidden>
-      <span id="count-badge" class="count-badge"></span>
-      <label class="images-toggle">
-        <input id="show-images" type="checkbox" checked>
-        <span>Images</span>
-      </label>
-      <button id="toggle-view" type="button">Show hidden</button>
-    </div>
-    <p id="status" class="status" role="status" aria-live="polite">Loading…</p>
 
+    <!-- list pane -->
     <div id="list-view">
+      <!-- controls -->
+      <div id="controls" class="controls" hidden>
+        <span class="count-badge">
+          <button id="show-visible" class="count-btn" type="button"></button>
+          <span aria-hidden="true">|</span>
+          <button id="show-hidden" class="count-btn" type="button"></button>
+        </span>
+        <label class="images-toggle">
+          <input id="show-images" type="checkbox" checked>
+          <span>Images</span>
+        </label>
+      </div>
       <ul id="list" class="article-list" hidden></ul>
     </div>
 
+    <!-- detail pane -->
     <div id="detail-view" hidden>
       <nav class="detail-nav">
         <button id="back-btn" type="button">← Back</button>
-        <a id="detail-external" href="#" target="_blank" rel="noopener noreferrer">Read on AP News →</a>
+        <button id="detail-hide-top" class="hide-btn" type="button">Hide</button>
       </nav>
-      <article id="detail-article" class="detail-article">
+      <article id="detail-article">
         <h1 id="detail-title"></h1>
         <p id="detail-meta" class="article-meta"></p>
         <img id="detail-image" class="article-thumb" alt="">
         <div id="detail-content" class="detail-content"></div>
+        <div class="detail-actions">
+          <a id="detail-external" class="detail-external" href="#" target="_blank" rel="noopener noreferrer">Read on AP News</a>
+          <button id="detail-hide-bottom" class="hide-btn" type="button">Hide</button>
+        </div>
       </article>
     </div>
-  </main>
 
-  <noscript>
-    <p class="noscript">JavaScript is required to load articles from this server.</p>
-  </noscript>
+    <!-- noscript -->
+    <noscript>
+      <p class="noscript">JavaScript is required to load articles from this server.</p>
+    </noscript>
+
+  </main>
 
   <script src="/js.js" defer></script>
 </body>
