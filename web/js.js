@@ -1,7 +1,6 @@
 (function () {
   "use strict";
 
-  var statusEl = document.getElementById("status");
   var listViewEl = document.getElementById("list-view");
   var listEl = document.getElementById("list");
   var detailViewEl = document.getElementById("detail-view");
@@ -19,11 +18,6 @@
   var viewMode = "visible"; // 'visible' | 'hidden'
   var showImages = true;
   var currentArticles = [];
-
-  function setStatus(text, isError) {
-    statusEl.textContent = text;
-    statusEl.classList.toggle("is-error", !!isError);
-  }
 
   function formatDate(ms) {
     if (ms == null || ms === 0) {
@@ -61,10 +55,7 @@
   function removeArticle(li) {
     li.parentNode.removeChild(li);
     if (!listEl.children.length) {
-      setStatus(viewMode === "hidden" ? "No hidden articles." : "No articles.");
       listEl.hidden = true;
-    } else {
-      setStatus(listEl.children.length + " article" + (listEl.children.length === 1 ? "" : "s"));
     }
   }
 
@@ -91,7 +82,6 @@
   function showList() {
     detailViewEl.hidden = true;
     listViewEl.hidden = false;
-    setStatus(currentArticles.length + " article" + (currentArticles.length === 1 ? "" : "s"));
   }
 
   function showDetail(article) {
@@ -145,7 +135,7 @@
         .catch(function (err) {
           detailContentEl.innerHTML = "";
           var p = document.createElement("p");
-          p.className = "status is-error";
+          p.className = "article-blurb";
           p.textContent = "Could not load article: " + (err.message || String(err));
           detailContentEl.appendChild(p);
         });
@@ -163,12 +153,10 @@
     listEl.innerHTML = "";
     if (!articles || !articles.length) {
       currentArticles = [];
-      setStatus(viewMode === "hidden" ? "No hidden articles." : "No articles yet.");
       listEl.hidden = true;
       return;
     }
 
-    setStatus(articles.length + " article" + (articles.length === 1 ? "" : "s"));
     listEl.hidden = false;
 
     articles.forEach(function (a) {
@@ -239,7 +227,7 @@
             updateCounts();
           })
           .catch(function (err) {
-            setStatus("Failed to update article: " + (err.message || String(err)), true);
+            console.error("Failed to update article:", err.message || String(err));
           });
       });
 
@@ -248,7 +236,6 @@
   }
 
   function load() {
-    setStatus("Loading…");
     listEl.hidden = true;
     showList();
 
@@ -264,7 +251,7 @@
         updateCounts();
       })
       .catch(function (err) {
-        setStatus("Could not load articles: " + (err.message || String(err)), true);
+        console.error("Could not load articles:", err.message || String(err));
         listEl.hidden = true;
       });
   }
@@ -307,7 +294,7 @@
         render(currentArticles);
       })
       .catch(function (err) {
-        setStatus("Failed to update images setting: " + (err.message || String(err)), true);
+        console.error("Failed to update images setting:", err.message || String(err));
         applyShowImages(!newVal);
       });
   });
