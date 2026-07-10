@@ -10,6 +10,8 @@
   var detailContentEl = document.getElementById("detail-content");
   var detailExternalEl = document.getElementById("detail-external");
   var backBtn = document.getElementById("back-btn");
+  var detailHideTopBtn = document.getElementById("detail-hide-top");
+  var detailHideBottomBtn = document.getElementById("detail-hide-bottom");
   var controlsEl = document.getElementById("controls");
   var showVisibleBtn = document.getElementById("show-visible");
   var showHiddenBtn = document.getElementById("show-hidden");
@@ -18,6 +20,7 @@
   var viewMode = "visible"; // 'visible' | 'hidden'
   var showImages = true;
   var currentArticles = [];
+  var currentArticle = null;
 
   function formatDate(ms) {
     if (ms == null || ms === 0) {
@@ -87,6 +90,12 @@
   function showDetail(article) {
     listViewEl.hidden = true;
     detailViewEl.hidden = false;
+
+    currentArticle = article;
+
+    var hideLabel = viewMode === "hidden" ? "Unhide" : "Hide";
+    detailHideTopBtn.textContent = hideLabel;
+    detailHideBottomBtn.textContent = hideLabel;
 
     detailTitleEl.textContent = article.title || "(no title)";
     detailExternalEl.href = article.url || "#";
@@ -276,9 +285,35 @@
 
   setActiveView();
 
+  function hideCurrentArticle() {
+    if (!currentArticle) return;
+    var url = currentArticle.url;
+    var endpoint = viewMode === "hidden" ? "/articles/unhide" : "/articles/hide";
+    fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: url }),
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        currentArticles = currentArticles.filter(function (a) {
+          return a.url !== url;
+        });
+        render(currentArticles);
+        showList();
+        updateCounts();
+      })
+      .catch(function (err) {
+        console.error("Failed to update article:", err.message || String(err));
+      });
+  }
+
   backBtn.addEventListener("click", function () {
     showList();
   });
+
+  detailHideTopBtn.addEventListener("click", hideCurrentArticle);
+  detailHideBottomBtn.addEventListener("click", hideCurrentArticle);
 
   showImagesEl.addEventListener("change", function () {
     var newVal = showImagesEl.checked;
