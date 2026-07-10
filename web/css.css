@@ -148,17 +148,6 @@ button.title:focus-visible {
   margin-bottom: 1rem;
 }
 
-.detail-nav a {
-  color: var(--accent);
-  font-size: 0.95rem;
-  text-decoration: none;
-}
-
-.detail-nav a:hover,
-.detail-nav a:focus-visible {
-  text-decoration: underline;
-}
-
 .detail-nav button {
   padding: 0.35rem 0.7rem;
   font-size: 0.9rem;
@@ -179,6 +168,24 @@ button.title:focus-visible {
   margin: 0.75rem 0 0;
   font-size: 1rem;
   line-height: 1.55;
+}
+
+.detail-external {
+  display: inline-block;
+  margin-top: 1.5rem;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.detail-external:hover,
+.detail-external:focus-visible {
+  text-decoration: none;
+  border-color: var(--accent);
 }
 
 #detail-image {
