@@ -2,16 +2,26 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"ap-scraper/internal/model"
+
+	"github.com/gin-gonic/gin"
 )
 
 // articleLister is the store surface needed for GET /articles (tests can pass a stub).
 type articleLister interface {
 	QueryAll(context.Context, bool) ([]model.Article, error)
+}
+
+// articleGetter is the store surface needed for GET /articles/:id.
+type articleGetter interface {
+	QueryOne(context.Context, int64) (model.Article, error)
 }
 
 // articleHider is the store surface needed for POST /articles/hide and /articles/unhide.
@@ -26,22 +36,94 @@ type articleCounter interface {
 }
 
 // ListArticles returns JSON for stored articles, filtered by hidden status.
+// Pass ?full=1 to include the content field in each article.
 func ListArticles(st articleLister) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		hidden := r.URL.Query().Get("hidden") == "1"
+		full := r.URL.Query().Get("full") == "1"
+
 		items, err := st.QueryAll(r.Context(), hidden)
 		if err != nil {
 			log.Printf("api: query articles: %v", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
+
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		enc := json.NewEncoder(w)
 		enc.SetIndent("", "  ")
-		if err := enc.Encode(items); err != nil {
+
+		if full {
+			if err := enc.Encode(items); err != nil {
+				log.Printf("api: encode json: %v", err)
+			}
+			return
+		}
+
+		summaries := make([]articleSummary, len(items))
+		for i, a := range items {
+			summaries[i] = articleSummary{
+				ID:        a.ID,
+				URL:       a.URL,
+				Title:     a.Title,
+				ImageURL:  a.ImageURL,
+				Blurb:     a.Blurb,
+				PostedAt:  a.PostedAt,
+				UpdatedAt: a.UpdatedAt,
+				ScrapedAt: a.ScrapedAt,
+				IsHidden:  a.IsHidden,
+			}
+		}
+		if err := enc.Encode(summaries); err != nil {
 			log.Printf("api: encode json: %v", err)
 		}
 	}
+}
+
+type articleSummary struct {
+	ID        int64  `json:"id"`
+	URL       string `json:"url"`
+	Title     string `json:"title"`
+	ImageURL  string `json:"image_url,omitempty"`
+	Blurb     string `json:"blurb,omitempty"`
+	PostedAt  int64  `json:"posted_at"`
+	UpdatedAt int64  `json:"updated_at"`
+	ScrapedAt int64  `json:"scraped_at"`
+	IsHidden  bool   `json:"is_hidden"`
+}
+
+// GetArticle returns a single article by database id, including its content.
+func GetArticle(st articleGetter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idParam := c.Param("id")
+		id, err := strconv.ParseInt(idParam, 10, 64)
+		if err != nil {
+			c.String(http.StatusBadRequest, "invalid article id")
+			return
+		}
+
+		article, err := st.QueryOne(c.Request.Context(), id)
+		if err != nil {
+			if isNotFound(err) {
+				c.Status(http.StatusNotFound)
+				return
+			}
+			log.Printf("api: get article %d: %v", id, err)
+			c.String(http.StatusInternalServerError, "internal error")
+			return
+		}
+
+		c.Header("Content-Type", "application/json; charset=utf-8")
+		enc := json.NewEncoder(c.Writer)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(article); err != nil {
+			log.Printf("api: encode json: %v", err)
+		}
+	}
+}
+
+func isNotFound(err error) bool {
+	return errors.Is(err, sql.ErrNoRows)
 }
 
 // HideArticle marks an article as hidden.
