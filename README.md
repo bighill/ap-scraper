@@ -6,17 +6,18 @@ Go service that scrapes AP world news articles from [apnews.com/world-news](http
 
 - Source page: `https://apnews.com/world-news`
 - Parses `div.PagePromo` promo cards and keeps article URLs matching `https://apnews.com/article/...`
-- Captures per article: `id`, `url`, `title`, `image_url`, `blurb`, `posted_at`, `updated_at`, `scraped_at`, `content`, `content_scraped_at` (ms epoch)
+- Captures per article (all ms epoch where applicable): `id`, `url`, `title`, `image_url`, `blurb`, `posted_at`, `updated_at`, `scraped_at`, `content`, `content_scraped_at`, `is_hidden`
 - Deduplicates by canonical URL within each parse; upserts by `url` into SQLite
 - Retention after each scrape: delete rows where `posted_at` is older than **2 days** (UTC)
 - **Scheduler:** checks `kv.last_scrape_at` on startup and each tick; runs only when the last scrape is older than **2 hours**
   - After a successful listing scrape, it fetches article pages one-by-one (20s timeout, 2s delay) and stores the body text
   - Each article URL is content-scraped at most once; once `content_scraped_at` is set it is never revisited
 - **HTTP:**
-  - `GET /articles` returns all stored articles as JSON summaries (newest `posted_at` first)
+  - `GET /articles` returns stored articles as JSON summaries (visible only by default, newest `posted_at` first); pass `?hidden=1` to list hidden articles
   - `GET /articles?full=1` includes the `content` field for each article
   - `GET /articles/:id` returns a single article by database id, including `content`
   - `GET /articles/count`, `POST /articles/hide`, `POST /articles/unhide`
+  - `GET /settings/images`, `POST /settings/images` — app-level image-visibility toggle used by the web UI
 
 Configuration is **static** in [`server/internal/config/config.go`](server/internal/config/config.go) (paths, listen address, intervals). Environment variables can be added later without changing this layout.
 
@@ -63,11 +64,12 @@ Keep runtime data **inside this repo** (e.g. `server/data/`), not under `/tmp` o
 
 - `bin/dev.sh` — run `air` hot-reload for `server/main.go`
 - `bin/reload-docker-prod.sh` — rebuild Docker image, replace running prod container, mount `web/` and `server/data/`
+- `bin/purge-data.sh` — delete `server/data/*.db*` runtime database files
 - `bin/test.sh` — `go -C server test ./...`
 
 ## Docker (prod-style local run)
 
-`./bin/reload-docker-prod.sh` builds the app image, stops/removes any existing `ap-scraper-prod` container, and starts a fresh one with:
+`./bin/reload-docker-prod.sh` builds the app image (`ap-scraper:prod`), stops/removes any existing `ap-scraper` container, and starts a fresh one with:
 
 - Port mapping: `9191:9191`
 - Volume mounts:
