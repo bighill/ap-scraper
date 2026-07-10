@@ -25,7 +25,7 @@ When on the `main` branch, do not run `git commit` unless the user explicitly re
 | SQLite | `server/internal/store` | Only package with SQL. `Open` applies schema; no `migrations/` history. |
 | Scraping | `server/internal/jobs` | Orchestrates fetch, `parser`, store upsert + retention. |
 | Scheduler | `server/internal/scheduler` | Default interval 2 hours; config in `server/internal/config`. |
-| HTTP | `server/internal/api`, `server/internal/api/handlers` | `GET /articles` returns all articles as JSON. |
+| HTTP | `server/internal/api`, `server/internal/api/handlers` | `GET /articles` returns articles as JSON (visible only by default; `?hidden=1` lists hidden). Also `/settings/images`, `/articles/count`, `/articles/hide`, `/articles/unhide`. |
 | HTML parsing | `server/internal/parser` | No database access. |
 | Types | `server/internal/model` | `Article` and JSON tags. |
 | Static config | `server/internal/config` | Constants only for now (paths, addr, durations). |
@@ -38,6 +38,6 @@ When on the `main` branch, do not run `git commit` unless the user explicitly re
 
 ## Docs
 
-- **`readme.md`** — user-facing behavior, layout table, run instructions.
+- **`README.md`** — user-facing behavior, layout table, run instructions.
 
-Keep agent work consistent with `readme.md`; avoid contradicting the “no migration ledger” and “static config until env vars are added” policies.
+Keep agent work consistent with `README.md`; avoid contradicting the “no migration ledger” and “static config until env vars are added” policies.
