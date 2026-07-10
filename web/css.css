@@ -48,7 +48,6 @@ main {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0;
 }
 
 .article-card {
@@ -56,8 +55,6 @@ main {
   padding: 3rem 0;
   background: none;
   border: none;
-  border-radius: 0;
-  box-shadow: none;
   overflow: hidden;
   transition: opacity 0.25s ease, height 0.25s ease, padding 0.25s ease;
 }
@@ -83,10 +80,6 @@ main {
   font-size: 0.9rem;
 }
 
-.count-sep {
-  color: var(--muted);
-}
-
 .count-btn {
   all: unset;
   cursor: pointer;
@@ -106,7 +99,6 @@ main {
 
 .hide-btn,
 .unhide-btn {
-  margin-top: 1rem;
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0.35rem 0.7rem;
@@ -114,6 +106,11 @@ main {
   border-radius: 4px;
   background: var(--bg);
   color: var(--fg);
+}
+
+.article-card .hide-btn,
+.article-card .unhide-btn {
+  margin-top: 1rem;
 }
 
 .images-toggle {

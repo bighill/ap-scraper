@@ -22,6 +22,7 @@
   var currentArticles = [];
   var currentArticle = null;
   var listScrollY = 0;
+  var detailToken = 0;
 
   function formatDate(ms) {
     if (ms == null || ms === 0) {
@@ -100,9 +101,11 @@
   function showList() {
     detailViewEl.hidden = true;
     listViewEl.hidden = false;
+    detailToken++;
   }
 
   function showDetail(article) {
+    var token = ++detailToken;
     listViewEl.hidden = true;
     detailViewEl.hidden = false;
 
@@ -152,11 +155,13 @@
           return res.json();
         })
         .then(function (data) {
+          if (token !== detailToken) return;
           article.content = data.content || "";
           article.content_scraped_at = data.content_scraped_at || 0;
           showDetail(article);
         })
         .catch(function (err) {
+          if (token !== detailToken) return;
           detailContentEl.innerHTML = "";
           var p = document.createElement("p");
           p.className = "article-blurb";
