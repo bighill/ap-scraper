@@ -58,6 +58,14 @@ main {
   border: none;
   border-radius: 0;
   box-shadow: none;
+  overflow: hidden;
+  transition: opacity 0.25s ease, height 0.25s ease, padding 0.25s ease;
+}
+
+.article-card.is-removing {
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .controls {
