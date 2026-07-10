@@ -14,13 +14,16 @@ import (
 // schema defines the SQLite tables used by the service.
 const schema = `
 CREATE TABLE IF NOT EXISTS articles (
-	url TEXT PRIMARY KEY,
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	url TEXT UNIQUE NOT NULL,
 	title TEXT NOT NULL,
 	image_url TEXT,
 	blurb TEXT,
+	content TEXT,
 	posted_at INTEGER NOT NULL,
 	updated_at INTEGER NOT NULL,
 	scraped_at INTEGER NOT NULL,
+	content_scraped_at INTEGER,
 	is_hidden INTEGER NOT NULL DEFAULT 0
 );
 
@@ -77,27 +80,7 @@ func Open(ctx context.Context, path string) (*Store, error) {
 		return nil, fmt.Errorf("create schema: %w", err)
 	}
 
-	// Migrate older databases that lack is_hidden.
-	if err := addColumnIfMissing(ctx, conn, "articles", "is_hidden"); err != nil {
-		conn.Close()
-		return nil, fmt.Errorf("migrate schema: %w", err)
-	}
-
 	return &Store{conn: conn}, nil
-}
-
-// addColumnIfMissing runs ALTER TABLE ADD COLUMN only when the column does not already exist.
-func addColumnIfMissing(ctx context.Context, conn *sql.DB, table, column string) error {
-	const q = `SELECT 1 FROM pragma_table_info(?) WHERE name = ?;`
-	var n int
-	if err := conn.QueryRowContext(ctx, q, table, column).Scan(&n); err != nil {
-		if err == sql.ErrNoRows {
-			_, err = conn.ExecContext(ctx, fmt.Sprintf(`ALTER TABLE %q ADD COLUMN %q INTEGER NOT NULL DEFAULT 0;`, table, column))
-			return err
-		}
-		return err
-	}
-	return nil
 }
 
 // Close closes the underlying database connection.

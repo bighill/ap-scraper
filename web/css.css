@@ -124,16 +124,75 @@ body {
   cursor: pointer;
 }
 
-
+button.title {
+  all: unset;
   color: var(--accent);
   text-decoration: none;
   font-size: 1.05rem;
   font-weight: 600;
+  cursor: pointer;
 }
 
-.article-card a.title:hover,
-.article-card a.title:focus-visible {
+button.title:hover,
+button.title:focus-visible {
   text-decoration: underline;
+}
+
+.detail-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  max-width: 40rem;
+}
+
+.detail-nav a {
+  color: var(--accent);
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.detail-nav a:hover,
+.detail-nav a:focus-visible {
+  text-decoration: underline;
+}
+
+.detail-nav button {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.detail-article {
+  max-width: 40rem;
+}
+
+.detail-article h1 {
+  font-size: 1.4rem;
+  margin: 0 0 0.5rem;
+  line-height: 1.25;
+}
+
+.detail-content p {
+  margin: 0.75rem 0 0;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+#detail-image {
+  margin-top: 0.75rem;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}
+
+#detail-image[hidden] {
+  display: none;
 }
 
 .article-meta {

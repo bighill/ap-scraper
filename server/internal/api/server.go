@@ -29,6 +29,7 @@ func New(st *store.Store, addr string) *Server {
 	web := filepath.Clean(config.WebUIDir)
 
 	r.GET("/articles", gin.WrapF(handlers.ListArticles(st)))
+	r.GET("/articles/:id", handlers.GetArticle(st))
 	r.GET("/articles/count", gin.WrapF(handlers.ArticleCounts(st)))
 	r.POST("/articles/hide", gin.WrapF(handlers.HideArticle(st)))
 	r.POST("/articles/unhide", gin.WrapF(handlers.UnhideArticle(st)))

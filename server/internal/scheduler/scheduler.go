@@ -6,26 +6,48 @@ import (
 	"time"
 
 	"ap-scraper/internal/jobs"
+	"ap-scraper/internal/model"
 	"ap-scraper/internal/store"
 )
 
+// scrapeStore is the subset of Store needed to drive the scheduler itself.
+type scrapeStore interface {
+	LastScrapeAt(context.Context) (time.Time, bool, error)
+	SetLastScrapeAt(context.Context, time.Time) error
+}
+
+// contentStore is the subset of Store needed to run the content scrape pass.
+type contentStore interface {
+	scrapeStore
+	QueryArticlesMissingContent(context.Context) ([]model.Article, error)
+	UpdateArticleContent(ctx context.Context, id int64, content string, scrapedAt int64) error
+}
+
 // Scheduler runs periodic scrape jobs.
 type Scheduler struct {
-	store     *store.Store
-	interval  time.Duration
-	scrape    jobs.ScrapeConfig
-	nowFn     func() time.Time
-	runScrape func(context.Context, *store.Store, jobs.ScrapeConfig) error
+	store            contentStore
+	interval         time.Duration
+	scrape           jobs.ScrapeConfig
+	content          jobs.ContentScrapeConfig
+	nowFn            func() time.Time
+	runScrape        func(context.Context, contentStore, jobs.ScrapeConfig) error
+	runContentScrape func(context.Context, contentStore, jobs.ContentScrapeConfig) error
 }
 
 // New returns a scheduler that uses the given scrape settings.
-func New(st *store.Store, interval time.Duration, scrape jobs.ScrapeConfig) *Scheduler {
+func New(st contentStore, interval time.Duration, scrape jobs.ScrapeConfig, content jobs.ContentScrapeConfig) *Scheduler {
 	return &Scheduler{
-		store:     st,
-		interval:  interval,
-		scrape:    scrape,
-		nowFn:     time.Now,
-		runScrape: jobs.RunScrape,
+		store:    st,
+		interval: interval,
+		scrape:   scrape,
+		content:  content,
+		nowFn:    time.Now,
+		runScrape: func(ctx context.Context, s contentStore, cfg jobs.ScrapeConfig) error {
+			return jobs.RunScrape(ctx, s.(*store.Store), cfg)
+		},
+		runContentScrape: func(ctx context.Context, s contentStore, cfg jobs.ContentScrapeConfig) error {
+			return jobs.RunContentScrape(ctx, s, cfg)
+		},
 	}
 }
 
@@ -66,6 +88,11 @@ func (s *Scheduler) maybeRun(ctx context.Context) {
 	}
 	if err := s.store.SetLastScrapeAt(ctx, now); err != nil {
 		log.Printf("scheduler: persist last scrape timestamp failed: %v", err)
+		return
+	}
+
+	if err := s.runContentScrape(ctx, s.store, s.content); err != nil {
+		log.Printf("scheduler: content scrape failed: %v", err)
 	}
 }
 

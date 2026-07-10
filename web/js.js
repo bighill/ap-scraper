@@ -2,7 +2,15 @@
   "use strict";
 
   var statusEl = document.getElementById("status");
+  var listViewEl = document.getElementById("list-view");
   var listEl = document.getElementById("list");
+  var detailViewEl = document.getElementById("detail-view");
+  var detailTitleEl = document.getElementById("detail-title");
+  var detailMetaEl = document.getElementById("detail-meta");
+  var detailImageEl = document.getElementById("detail-image");
+  var detailContentEl = document.getElementById("detail-content");
+  var detailExternalEl = document.getElementById("detail-external");
+  var backBtn = document.getElementById("back-btn");
   var controlsEl = document.getElementById("controls");
   var countBadgeEl = document.getElementById("count-badge");
   var toggleViewEl = document.getElementById("toggle-view");
@@ -49,12 +57,7 @@
   }
 
   function removeArticle(li) {
-    var next = li.nextElementSibling;
-    var prev = li.previousElementSibling;
     li.parentNode.removeChild(li);
-    if (next && prev) {
-      // re-assert borders via CSS sibling selector; no-op for JS.
-    }
     if (!listEl.children.length) {
       setStatus(viewMode === "hidden" ? "No hidden articles." : "No articles.");
       listEl.hidden = true;
@@ -83,6 +86,76 @@
       });
   }
 
+  function showList() {
+    detailViewEl.hidden = true;
+    listViewEl.hidden = false;
+    setStatus(currentArticles.length + " article" + (currentArticles.length === 1 ? "" : "s"));
+  }
+
+  function showDetail(article) {
+    listViewEl.hidden = true;
+    detailViewEl.hidden = false;
+
+    detailTitleEl.textContent = article.title || "(no title)";
+    detailExternalEl.href = article.url || "#";
+    detailMetaEl.textContent = article.posted_at ? "Posted " + formatDate(article.posted_at) : "";
+
+    if (showImages && article.image_url) {
+      detailImageEl.src = article.image_url;
+      detailImageEl.hidden = false;
+    } else {
+      detailImageEl.hidden = true;
+      detailImageEl.src = "";
+    }
+
+    detailContentEl.innerHTML = "";
+    if (article.content) {
+      article.content.split("\n\n").forEach(function (para) {
+        var p = document.createElement("p");
+        p.textContent = para;
+        detailContentEl.appendChild(p);
+      });
+      window.scrollTo(0, 0);
+    } else if (article.content_scraped_at) {
+      var p = document.createElement("p");
+      p.className = "article-blurb";
+      p.textContent = "No article text is available for this page.";
+      detailContentEl.appendChild(p);
+      window.scrollTo(0, 0);
+    } else if (typeof article.content_scraped_at === "undefined") {
+      var p = document.createElement("p");
+      p.className = "article-blurb";
+      p.textContent = "Loading article text…";
+      detailContentEl.appendChild(p);
+
+      fetch("/articles/" + encodeURIComponent(article.id), {
+        headers: { Accept: "application/json" },
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          article.content = data.content || "";
+          article.content_scraped_at = data.content_scraped_at || 0;
+          showDetail(article);
+        })
+        .catch(function (err) {
+          detailContentEl.innerHTML = "";
+          var p = document.createElement("p");
+          p.className = "status is-error";
+          p.textContent = "Could not load article: " + (err.message || String(err));
+          detailContentEl.appendChild(p);
+        });
+    } else {
+      var p = document.createElement("p");
+      p.className = "article-blurb";
+      p.textContent = "Article text has not been loaded yet. It will appear after the next scheduled content scrape.";
+      detailContentEl.appendChild(p);
+      window.scrollTo(0, 0);
+    }
+  }
+
   function render(articles) {
     currentArticles = articles;
     listEl.innerHTML = "";
@@ -103,13 +176,11 @@
       var header = document.createElement("div");
       header.className = "article-header";
 
-      var titleA = document.createElement("a");
-      titleA.className = "title";
-      titleA.href = a.url || "#";
-      titleA.textContent = a.title || "(no title)";
-      titleA.rel = "noopener noreferrer";
-      titleA.target = "_blank";
-      header.appendChild(titleA);
+      var titleBtn = document.createElement("button");
+      titleBtn.className = "title";
+      titleBtn.type = "button";
+      titleBtn.textContent = a.title || "(no title)";
+      header.appendChild(titleBtn);
 
       var actionBtn = document.createElement("button");
       actionBtn.type = "button";
@@ -148,6 +219,10 @@
         li.appendChild(img);
       }
 
+      titleBtn.addEventListener("click", function () {
+        showDetail(a);
+      });
+
       actionBtn.addEventListener("click", function () {
         var url = a.url;
         var endpoint = viewMode === "hidden" ? "/articles/unhide" : "/articles/hide";
@@ -173,6 +248,7 @@
   function load() {
     setStatus("Loading…");
     listEl.hidden = true;
+    showList();
 
     var url = viewMode === "hidden" ? "/articles?hidden=1" : "/articles";
     fetch(url, { headers: { Accept: "application/json" } })
@@ -195,6 +271,10 @@
     viewMode = viewMode === "visible" ? "hidden" : "visible";
     toggleViewEl.textContent = viewMode === "visible" ? "Show hidden" : "Show main";
     load();
+  });
+
+  backBtn.addEventListener("click", function () {
+    showList();
   });
 
   showImagesEl.addEventListener("change", function () {

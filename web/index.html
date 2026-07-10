@@ -19,7 +19,23 @@
       <button id="toggle-view" type="button">Show hidden</button>
     </div>
     <p id="status" class="status" role="status" aria-live="polite">Loading…</p>
-    <ul id="list" class="article-list" hidden></ul>
+
+    <div id="list-view">
+      <ul id="list" class="article-list" hidden></ul>
+    </div>
+
+    <div id="detail-view" hidden>
+      <nav class="detail-nav">
+        <button id="back-btn" type="button">← Back</button>
+        <a id="detail-external" href="#" target="_blank" rel="noopener noreferrer">Read on AP News →</a>
+      </nav>
+      <article id="detail-article" class="detail-article">
+        <h1 id="detail-title"></h1>
+        <p id="detail-meta" class="article-meta"></p>
+        <img id="detail-image" class="article-thumb" alt="">
+        <div id="detail-content" class="detail-content"></div>
+      </article>
+    </div>
   </main>
 
   <noscript>
