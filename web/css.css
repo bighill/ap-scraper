@@ -60,10 +60,6 @@ main {
   box-shadow: none;
 }
 
-.article-card + .article-card {
-  border-top: 1px solid var(--border);
-}
-
 .controls {
   display: flex;
   gap: 1rem;
@@ -100,15 +96,9 @@ main {
   color: var(--fg);
 }
 
-.article-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
 .hide-btn,
 .unhide-btn {
+  margin-top: 1rem;
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0.35rem 0.7rem;

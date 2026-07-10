@@ -163,14 +163,11 @@
       var li = document.createElement("li");
       li.className = "article-card";
 
-      var header = document.createElement("div");
-      header.className = "article-header";
-
       var titleBtn = document.createElement("button");
       titleBtn.className = "title";
       titleBtn.type = "button";
       titleBtn.textContent = a.title || "(no title)";
-      header.appendChild(titleBtn);
+      li.appendChild(titleBtn);
 
       var actionBtn = document.createElement("button");
       actionBtn.type = "button";
@@ -181,9 +178,6 @@
         actionBtn.className = "hide-btn";
         actionBtn.textContent = "Hide";
       }
-      header.appendChild(actionBtn);
-
-      li.appendChild(header);
 
       var posted = formatDate(a.posted_at);
       if (posted) {
@@ -208,6 +202,8 @@
         img.loading = "lazy";
         li.appendChild(img);
       }
+
+      li.appendChild(actionBtn);
 
       titleBtn.addEventListener("click", function () {
         showDetail(a);
