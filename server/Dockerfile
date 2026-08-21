@@ -21,6 +21,6 @@ COPY web /app/web
 
 USER apnews
 
-EXPOSE 9191
+EXPOSE 8081
 
 ENTRYPOINT ["/app/server/apnews-server"]
