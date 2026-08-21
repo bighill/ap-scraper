@@ -22,9 +22,9 @@ echo "Run container..."
 docker run -d \
   --name "${CONTAINER_NAME}" \
   --restart unless-stopped \
-  -p 9191:9191 \
+  -p 8081:8081 \
   -v "${ROOT_DIR}/web:/app/web" \
   -v "${ROOT_DIR}/server/data:/app/server/data" \
   "${IMAGE_NAME}"
 
-echo "Container ${CONTAINER_NAME} is running on http://localhost:9191"
+echo "Container ${CONTAINER_NAME} is running on http://localhost:8081"
